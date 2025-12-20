@@ -7,6 +7,7 @@ import {
   Flame, Clock, MoreHorizontal, Info, UserPlus, Shield, Activity, Lock,
   Building2, Filter, EyeOff, Link, ExternalLink, Newspaper
 } from 'lucide-react';
+import { notFound } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 
 // --- データ定義 ---
@@ -29,7 +30,7 @@ type Post = {
   id: number;
   title?: string;
   company?: string;
-  status?: PostStatus; // ← stringじゃなく union
+  status?: PostStatus;
   score?: number;
   category_type?: CategoryKey;
   related_post_ids?: number[];
@@ -118,6 +119,9 @@ export default function AdminDashboard() {
   }) => {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
     const items = getPageItems(page, totalPages);
+    
+    if (authLoading) return null;
+    if (!myRole) return null;
   
     return (
       <div className="flex items-center justify-between gap-3 mt-4">
@@ -173,25 +177,36 @@ export default function AdminDashboard() {
       setAuthLoading(true);
   
       const { data: { user } } = await supabase.auth.getUser();
+  
+      // ✅ 未ログインなら 404
       if (!user) {
-        setMyRole(null);
         setAuthLoading(false);
+        notFound();
         return;
       }
-      
+  
       const { data, error } = await supabase
         .from('admins')
         .select('role')
         .eq('user_id', user.id)
         .single();
   
+      // ✅ admins にいない or role 無し or エラーでも 404
       if (error || !data?.role) {
-        setMyRole(null);
         setAuthLoading(false);
+        notFound();
         return;
       }
   
       const role = data.role as Role;
+  
+      // ✅ 念のため role が想定外でも 404
+      if (!['ADMIN', 'POSTER'].includes(role)) {
+        setAuthLoading(false);
+        notFound();
+        return;
+      }
+  
       setMyRole(role);
   
       // roleが確定してから必要なデータだけ取る
@@ -200,6 +215,7 @@ export default function AdminDashboard() {
       setAuthLoading(false);
     })();
   }, []);
+  
   useEffect(() => {
     if (authLoading) return;
     if (!myRole) return;
