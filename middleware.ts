@@ -54,7 +54,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(new URL("/404", req.url));
   }
 
-  return res;
+  const url = req.nextUrl.clone();
+  url.pathname = "/admin";
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
