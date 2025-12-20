@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import AdminDashboardClient from "./AdminDashboardClient";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { createSupabaseServerClient } from "../../lib/supabaseServer";
 
 export const dynamic = "force-dynamic"; // cookieを読むので静的化しない
 
 export default async function Page() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // 1) 未ログインは404
   const {
