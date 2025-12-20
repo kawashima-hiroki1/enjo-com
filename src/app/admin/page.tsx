@@ -10,16 +10,38 @@ import {
 import { supabase } from '../../lib/supabaseClient';
 
 // --- データ定義 ---
-const CATEGORIES = {
+type CategoryKey = 'CREATIVE' | 'SERVICE' | 'GOVERNANCE' | 'COMMUNICATION';
+type CategoryValue = { label: string; color: string };
+
+const CATEGORIES: Record<CategoryKey, CategoryValue> = {
   CREATIVE: { label: 'クリエイティブ・表現', color: 'bg-purple-100 text-purple-800' },
   SERVICE: { label: '商品・サービス・接客', color: 'bg-orange-100 text-orange-800' },
   GOVERNANCE: { label: 'コンプライアンス・組織', color: 'bg-gray-100 text-gray-800' },
   COMMUNICATION: { label: 'SNS・コミュニケーション', color: 'bg-blue-100 text-blue-800' },
 };
 
-const INDUSTRIES = ["メーカー", "サービス・小売", "IT・通信・メディア", "インフラ・公共・その他"];
-const LISTING_STATUSES = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
-const MEDIA_SOURCES = ["Yahoo!ニュース", "X (旧Twitter)", "SmartNews", "LINE NEWS", "ITmedia", "ハフポスト", "PR TIMES", "Togetter", "YouTube", "テレビ報道", "その他"];
+type PostStatus = 'draft' | 'private' | 'published';
+
+type RelatedLink = { source: string; title: string; url: string };
+type TimelineItem = { day: string; title: string; desc: string };
+
+type Post = {
+  id: number;
+  title?: string;
+  company?: string;
+  status?: PostStatus; // ← stringじゃなく union
+  score?: number;
+  category_type?: CategoryKey;
+  related_post_ids?: number[];
+  related_links?: RelatedLink[];
+  timeline?: TimelineItem[];
+  created_at?: string;
+  updated_at?: string;
+};
+
+const INDUSTRIES: string[] = ["メーカー", "サービス・小売", "IT・通信・メディア", "インフラ・公共・その他"];
+const LISTING_STATUSES: string[] = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
+const MEDIA_SOURCES: string[] = ["Yahoo!ニュース", "X (旧Twitter)", "SmartNews", "LINE NEWS", "ITmedia", "ハフポスト", "PR TIMES", "Togetter", "YouTube", "テレビ報道", "その他"];
 
 const SCORE_DEFINITIONS: Record<number, { label: string; desc: string }> = {
   1: { label: "限定的", desc: "一部界隈で批判・引用RTで拡散" },
@@ -39,7 +61,7 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState('list'); 
   
   // データのState
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<any[]>([]); // 顧客データ
   const [admins, setAdmins] = useState<any[]>([]); // 管理者データ
   const [dashboardStats, setDashboardStats] = useState<{ totalUsers: number; uniqueCompanies: number }>({
@@ -181,8 +203,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (authLoading) return;
     if (!myRole) return;
-    if (activeMenu === 'users' && myRole !== 'ADMIN') setActiveMenu('dashboard');
-    if (activeMenu === 'settings' && myRole !== 'ADMIN') setActiveMenu('dashboard');
+    fetchPosts();
   }, [authLoading, myRole, activeMenu]);
 
   const fetchAllData = async (role: Role) => {
@@ -202,11 +223,11 @@ export default function AdminDashboard() {
 };
   // 事例管理：ページ変更で再取得
   useEffect(() => {
-  if (authLoading) return;
-  if (!myRole) return;
-  if (activeMenu !== 'posts') return;
-  fetchPosts(postsPage);
-}, [authLoading, myRole, activeMenu, postsPage]);
+    if (authLoading) return;
+    if (!myRole) return;
+    if (activeMenu !== 'posts') return;
+    fetchPosts(postsPage);
+  }, [authLoading, myRole, activeMenu, postsPage]);
 
 // 顧客管理：ページ変更で再取得（管理者のみ）
   useEffect(() => {
@@ -233,9 +254,10 @@ export default function AdminDashboard() {
       return;
     }
   
-    setPosts(data || []);
+    setPosts((data as Post[]) || []);
     setPostsTotalCount(count || 0);
   };
+  
 
   const fetchUsers = async (page = usersPage) => {
     const from = (page - 1) * USERS_PAGE_SIZE;
@@ -290,8 +312,8 @@ export default function AdminDashboard() {
   
 
   // --- 事例管理ロジック ---
-  const years = Array.from({ length: 10 }, (_, i) => 2019 + i); 
-  const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const years: number[] = Array.from({ length: 10 }, (_, i) => 2019 + i);
+  const months: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
 
   const initFormData = () => ({
     title: '', company: '', industry: 'メーカー', listing_status: '未上場',
@@ -668,6 +690,27 @@ export default function AdminDashboard() {
   );
 }
 
+type EditViewProps = {
+  formData: any;
+  editingPost: Post | null;
+  posts: Post[];
+  years: number[];
+  months: string[];
+  setViewMode: (v: 'list' | 'edit') => void;
+  handleChange: (e: any) => void;
+  handleSavePost: () => void;
+  addArrayItem: (key: string, initial: any) => void;
+  removeArrayItem: (key: string, index: number) => void;
+  handleArrayItemChange: (key: string, index: number, field: string, value: string) => void;
+  toggleRelatedPost: (postId: number) => void;
+
+  SCORE_DEFINITIONS: Record<number, { label: string; desc: string }>;
+  INDUSTRIES: string[];
+  LISTING_STATUSES: string[];
+  CATEGORIES: Record<CategoryKey, CategoryValue>;
+  MEDIA_SOURCES: string[];
+};
+
 function EditView({
   formData,
   editingPost,
@@ -686,7 +729,8 @@ function EditView({
   LISTING_STATUSES,
   CATEGORIES,
   MEDIA_SOURCES,
-}: any) {
+}: EditViewProps) 
+ {
   if (!formData) return null;
   // スコアの現在の説明を取得
   const currentScore = Math.floor(formData.score) || 1;
@@ -746,8 +790,8 @@ function EditView({
                <div>
                  <label className="block text-sm font-bold text-gray-700 mb-1">発生時期</label>
                  <div className="flex gap-2">
-                   <select name="dateYear" value={formData.dateYear} onChange={handleChange} className="border p-2 rounded w-1/2">{years.map(y => <option key={y} value={y}>{y}年</option>)}</select>
-                   <select name="dateMonth" value={formData.dateMonth} onChange={handleChange} className="border p-2 rounded w-1/2">{months.map(m => <option key={m} value={m}>{m}月</option>)}</select>
+                   <select name="dateYear" value={formData.dateYear} onChange={handleChange} className="border p-2 rounded w-1/2">{years.map((y: number) => (<option key={y} value={y}>{y}年</option>))}</select>
+                   <select name="dateMonth" value={formData.dateMonth} onChange={handleChange} className="border p-2 rounded w-1/2">{months.map((m: string) => (<option key={m} value={m}>{m}月</option>))}</select>
                  </div>
                </div>
              </div>
@@ -805,7 +849,7 @@ function EditView({
              <div className="space-y-3">
                {formData.related_links.map((l: any, i: number) => (
                  <div key={i} className="flex gap-2 items-center bg-gray-50 p-2 rounded border border-gray-100">
-                   <select value={l.source} onChange={(e) => handleArrayItemChange('related_links', i, 'source', e.target.value)} className="border p-1 rounded text-xs w-32">{MEDIA_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                   <select value={l.source} onChange={(e) => handleArrayItemChange('related_links', i, 'source', e.target.value)} className="border p-1 rounded text-xs w-32">{MEDIA_SOURCES.map((s: string) => (<option key={s} value={s}>{s}</option>))}</select>
                    <input value={l.title} onChange={(e) => handleArrayItemChange('related_links', i, 'title', e.target.value)} className="flex-1 border p-1 rounded text-sm" placeholder="記事タイトル" />
                    <input value={l.url} onChange={(e) => handleArrayItemChange('related_links', i, 'url', e.target.value)} className="flex-1 border p-1 rounded text-sm text-blue-500" placeholder="URL" />
                    <button onClick={() => removeArrayItem('related_links', i)}><X size={16}/></button>
@@ -822,15 +866,15 @@ function EditView({
              <h3 className="font-bold text-sm text-gray-500 uppercase tracking-wider">カテゴリ属性</h3>
              <div>
                <label className="block text-xs font-bold text-gray-500 mb-1">業界</label>
-               <select name="industry" value={formData.industry} onChange={handleChange} className="w-full border p-2 rounded bg-white">{INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}</select>
+               <select name="industry" value={formData.industry} onChange={handleChange} className="w-full border p-2 rounded bg-white">{INDUSTRIES.map((i: string) => (<option key={i} value={i}>{i}</option>))}</select>
              </div>
              <div>
                <label className="block text-xs font-bold text-gray-500 mb-1">上場区分</label>
-               <select name="listing_status" value={formData.listing_status} onChange={handleChange} className="w-full border p-2 rounded bg-white">{LISTING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+               <select name="listing_status" value={formData.listing_status} onChange={handleChange} className="w-full border p-2 rounded bg-white">{LISTING_STATUSES.map((s: string) => (<option key={s} value={s}>{s}</option>))}</select>
              </div>
              <div>
                <label className="block text-xs font-bold text-gray-500 mb-1">炎上カテゴリ</label>
-               <select name="category_type" value={formData.category_type} onChange={handleChange} className="w-full border p-2 rounded bg-white">{Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
+               <select name="category_type" value={formData.category_type} onChange={handleChange} className="w-full border p-2 rounded bg-white">{(Object.entries(CATEGORIES) as [CategoryKey, CategoryValue][]).map(([k, v]) => (<option key={k} value={k}>{v.label}</option>))}</select>
              </div>
              <div>
                <label className="block text-xs font-bold text-gray-500 mb-1">タグ (カンマ区切り)</label>
