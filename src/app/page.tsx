@@ -21,7 +21,7 @@ const CATEGORIES = {
   COMMUNICATION: { label: 'SNS・コミュニケーション', color: 'bg-blue-100 text-blue-800' }, 
 };
 
-const INDUSTRIES = ["メーカー", "サービス・小売", "IT・通信・メディア", "インフラ・公共・その他"];
+const INDUSTRIES = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業"];
 const LISTING_STATUSES = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
 
 // 影響度スコアの定義
@@ -597,7 +597,7 @@ const Dashboard = ({
                 <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center"><CheckCircle size={16} className="mr-2" /> 炎上.com 編集部の考察</h3>
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
                   <div className="mb-4"><p className="text-xs font-bold text-blue-800 mb-1">要因分析</p><p className="text-gray-800 text-sm">{badMove}</p></div>
-                  <div className="pt-4 border-t border-blue-200"><p className="text-xs font-bold text-blue-800 mb-1">この事例からの学び</p><p className="text-gray-900 font-bold text-lg">"{item.lesson}"</p></div>
+                  <div className="pt-4 border-t border-blue-200"><p className="text-xs font-bold text-blue-800 mb-1">この事例からの学び</p><p className="text-gray-900 font-bold text-lg">{item.lesson}</p></div>
                 </div>
               </section>
             </div>
