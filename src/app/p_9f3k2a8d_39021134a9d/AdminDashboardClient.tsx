@@ -332,7 +332,7 @@ export default function AdminDashboard() {
   const months: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
 
   const initFormData = () => ({
-    title: '', company: '', industry: 'メーカー', listing_status: '未上場',
+    title: '', company: '', industry: '水産・農林業', listing_status: '未上場',
     dateYear: '2024', dateMonth: '01', 
     category_type: 'CREATIVE', tags: '', score: 3.0, 
     summary: '', impact: '', bad_move: '', lesson: '', status: 'draft',
@@ -745,7 +745,7 @@ function EditView({
   LISTING_STATUSES,
   CATEGORIES,
   MEDIA_SOURCES,
-}: EditViewProps) 
+}: EditViewProps)
  {
   if (!formData) return null;
   // スコアの現在の説明を取得
@@ -825,7 +825,8 @@ function EditView({
                  <label className="block text-sm font-bold text-red-600 mb-1">実害・インパクト</label>
                  <textarea name="impact" value={formData.impact} onChange={handleChange} rows={5} className="w-full p-2 border border-red-100 bg-red-50 rounded text-sm" placeholder="箇条書きで入力（改行区切り）" />
                </div>
-           </div>
+              </div>
+             </div>
 
            {/* タイムライン */}
            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -921,4 +922,4 @@ function EditView({
      </div>
   </div>
 );
-};
+}
