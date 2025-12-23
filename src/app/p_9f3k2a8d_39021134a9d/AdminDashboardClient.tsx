@@ -825,15 +825,6 @@ function EditView({
                  <label className="block text-sm font-bold text-red-600 mb-1">実害・インパクト</label>
                  <textarea name="impact" value={formData.impact} onChange={handleChange} rows={5} className="w-full p-2 border border-red-100 bg-red-50 rounded text-sm" placeholder="箇条書きで入力（改行区切り）" />
                </div>
-               <div>
-                  <label className="block text-sm font-bold text-blue-600 mb-1">要因分析 (Bad Move)</label>
-                  <textarea name="bad_move" value={formData.bad_move} onChange={handleChange} rows={5} className="w-full p-2 border border-blue-100 bg-blue-50 rounded text-sm" placeholder="編集部の分析コメント" />
-               </div>
-             </div>
-             <div>
-               <label className="block text-sm font-bold text-gray-700 mb-1">この事例からの学び (Lesson)</label>
-               <textarea name="lesson" value={formData.lesson} onChange={handleChange} rows={2} className="w-full p-2 border border-gray-300 rounded font-bold" placeholder="一言でいうと？" />
-             </div>
            </div>
 
            {/* タイムライン */}
