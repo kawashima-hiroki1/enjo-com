@@ -593,13 +593,6 @@ const Dashboard = ({
                   </div>
                 </section>
               )}
-              <section>
-                <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center"><CheckCircle size={16} className="mr-2" /> 炎上.com 編集部の考察</h3>
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
-                  <div className="mb-4"><p className="text-xs font-bold text-blue-800 mb-1">要因分析</p><p className="text-gray-800 text-sm">{badMove}</p></div>
-                  <div className="pt-4 border-t border-blue-200"><p className="text-xs font-bold text-blue-800 mb-1">この事例からの学び</p><p className="text-gray-900 font-bold text-lg">{item.lesson}</p></div>
-                </div>
-              </section>
             </div>
             <div className="space-y-4">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
