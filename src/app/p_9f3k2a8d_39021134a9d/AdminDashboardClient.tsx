@@ -241,6 +241,13 @@ export default function AdminDashboard() {
   await Promise.all(tasks);
   setLoading(false);
 };
+
+  // フィルター条件
+  useEffect(() => {
+  if (activeMenu !== 'posts') return;
+  setPostsPage(1);
+}, [filterYear, filterMonth, activeMenu]);
+  
   // 事例管理：ページ変更で再取得
   useEffect(() => {
     if (authLoading) return;
@@ -249,7 +256,7 @@ export default function AdminDashboard() {
     fetchPosts(postsPage, filterYear, filterMonth);
   }, [authLoading, myRole, activeMenu, postsPage, filterYear, filterMonth]);
 
-// 顧客管理：ページ変更で再取得（管理者のみ）
+　// 顧客管理：ページ変更で再取得（管理者のみ）
   useEffect(() => {
   if (authLoading) return;
   if (myRole !== 'ADMIN') return;
@@ -607,6 +614,41 @@ export default function AdminDashboard() {
     <div className="animate-in fade-in duration-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">事例データベース管理 (CMS)</h2>
+        <div className="flex justify-between items-center mb-6">
+  <h2 className="text-2xl font-bold text-gray-800">事例データベース管理 (CMS)</h2>
+
+  <div className="flex items-center gap-3">
+    {/* 年 */}
+    <select
+      value={filterYear}
+      onChange={(e) => setFilterYear(e.target.value)}
+      className="border px-3 py-2 rounded-lg text-sm bg-white"
+    >
+      <option value="all">年：すべて</option>
+      {years.map((y) => (
+        <option key={y} value={String(y)}>{y}年</option>
+      ))}
+    </select>
+
+    {/* 月 */}
+    <select
+      value={filterMonth}
+      onChange={(e) => setFilterMonth(e.target.value)}
+      className="border px-3 py-2 rounded-lg text-sm bg-white"
+    >
+      <option value="all">月：すべて</option>
+      {months.map((m) => (
+        <option key={m} value={m}>{m}月</option>
+      ))}
+    </select>
+
+    {/* 解除 */}
+    <button
+      onClick={() => { setFilterYear('all'); setFilterMonth('all'); }}
+      className="border px-3 py-2 rounded-lg text-sm font-bold hover:bg-gray-50"
+    >
+      解除
+    </button>
         <button onClick={handleCreateNew} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-red-700 transition shadow-sm"><Plus size={20} /> 新規事例作成</button>
       </div>
       {loading ? <div className="text-center py-10 text-gray-500">読み込み中...</div> : (
