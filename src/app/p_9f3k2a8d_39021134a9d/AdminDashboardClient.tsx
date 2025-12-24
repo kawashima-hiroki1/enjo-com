@@ -15,10 +15,10 @@ type CategoryKey = 'CREATIVE' | 'SERVICE' | 'GOVERNANCE' | 'COMMUNICATION';
 type CategoryValue = { label: string; color: string };
 
 const CATEGORIES: Record<CategoryKey, CategoryValue> = {
-  CREATIVE: { label: 'クリエイティブ・表現', color: 'bg-purple-100 text-purple-800' },
+  CREATIVE: { label: 'クリエイティブ表現', color: 'bg-purple-100 text-purple-800' },
   SERVICE: { label: '商品・サービス・接客', color: 'bg-orange-100 text-orange-800' },
-  GOVERNANCE: { label: 'コンプライアンス・組織', color: 'bg-gray-100 text-gray-800' },
-  COMMUNICATION: { label: 'SNS・コミュニケーション', color: 'bg-blue-100 text-blue-800' },
+  GOVERNANCE: { label: 'コンプライアンス', color: 'bg-gray-100 text-gray-800' },
+  COMMUNICATION: { label: 'SNSコミュニケーション', color: 'bg-blue-100 text-blue-800' },
 };
 
 type PostStatus = 'draft' | 'private' | 'published';
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  // --- ページネーション ---
+  // ページネーション
   const POSTS_PAGE_SIZE = 100;   // 事例管理：1ページ100件
   const USERS_PAGE_SIZE = 50;   // 顧客管理：1ページ50件
   
@@ -79,6 +79,10 @@ export default function AdminDashboard() {
   const [postsTotalCount, setPostsTotalCount] = useState(0);
   const [usersPage, setUsersPage] = useState(1);
   const [usersTotalCount, setUsersTotalCount] = useState(0);
+
+  // 発生時期フィルタ
+  const [filterYear, setFilterYear] = useState<string>('all');
+  const [filterMonth, setFilterMonth] = useState<string>('all');
 
   // 編集用State
   const [editingPost, setEditingPost] = useState<any>(null);
@@ -242,8 +246,8 @@ export default function AdminDashboard() {
     if (authLoading) return;
     if (!myRole) return;
     if (activeMenu !== 'posts') return;
-    fetchPosts(postsPage);
-  }, [authLoading, myRole, activeMenu, postsPage]);
+    fetchPosts(postsPage, filterYear, filterMonth);
+  }, [authLoading, myRole, activeMenu, postsPage, filterYear, filterMonth]]);
 
 // 顧客管理：ページ変更で再取得（管理者のみ）
   useEffect(() => {
@@ -253,27 +257,36 @@ export default function AdminDashboard() {
   fetchUsers(usersPage);
 }, [authLoading, myRole, activeMenu, usersPage]);
 
-  const fetchPosts = async (page = postsPage) => {
-    const from = (page - 1) * POSTS_PAGE_SIZE;
-    const to = from + POSTS_PAGE_SIZE - 1;
-  
-    const { data, error, count } = await supabase
-      .from('posts')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to);
-  
-    if (error) {
-      console.error(error);
-      setPosts([]);
-      setPostsTotalCount(0);
-      return;
-    }
-  
-    setPosts((data as Post[]) || []);
-    setPostsTotalCount(count || 0);
-  };
-  
+  const fetchPosts = async (
+  page = postsPage,
+  y = filterYear,
+  m = filterMonth
+) => {
+  const from = (page - 1) * POSTS_PAGE_SIZE;
+  const to = from + POSTS_PAGE_SIZE - 1;
+
+  let q = supabase
+    .from('posts')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false });
+
+  // 発生時期で絞り込み（両方選ばれてる時だけ）
+  if (y !== 'all' && m !== 'all') {
+    q = q.eq('date', `${y}年${m}月`);
+  }
+
+  const { data, error, count } = await q.range(from, to);
+
+  if (error) {
+    console.error(error);
+    setPosts([]);
+    setPostsTotalCount(0);
+    return;
+  }
+
+  setPosts((data as Post[]) || []);
+  setPostsTotalCount(count || 0);
+};
 
   const fetchUsers = async (page = usersPage) => {
     const from = (page - 1) * USERS_PAGE_SIZE;
