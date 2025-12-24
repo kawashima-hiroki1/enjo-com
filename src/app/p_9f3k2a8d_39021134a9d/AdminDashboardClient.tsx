@@ -247,7 +247,7 @@ export default function AdminDashboard() {
     if (!myRole) return;
     if (activeMenu !== 'posts') return;
     fetchPosts(postsPage, filterYear, filterMonth);
-  }, [authLoading, myRole, activeMenu, postsPage, filterYear, filterMonth]]);
+  }, [authLoading, myRole, activeMenu, postsPage, filterYear, filterMonth]);
 
 // 顧客管理：ページ変更で再取得（管理者のみ）
   useEffect(() => {
