@@ -15,10 +15,10 @@ import { supabase } from '../lib/supabaseClient';
 const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.co.jp', 'hotmail.com', 'outlook.com', 'icloud.com'];
 
 const CATEGORIES = {
-  CREATIVE: { label: 'クリエイティブ・表現', color: 'bg-purple-100 text-purple-800' }, 
+  CREATIVE: { label: 'クリエイティブ表現', color: 'bg-purple-100 text-purple-800' }, 
   SERVICE: { label: '商品・サービス・接客', color: 'bg-orange-100 text-orange-800' }, 
-  GOVERNANCE: { label: 'コンプライアンス・組織', color: 'bg-gray-100 text-gray-800' }, 
-  COMMUNICATION: { label: 'SNS・コミュニケーション', color: 'bg-blue-100 text-blue-800' }, 
+  GOVERNANCE: { label: 'コンプライアンス', color: 'bg-gray-100 text-gray-800' }, 
+  COMMUNICATION: { label: 'SNSコミュニケーション', color: 'bg-blue-100 text-blue-800' }, 
 };
 
 const INDUSTRIES = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業"];
