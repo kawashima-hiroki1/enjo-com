@@ -610,84 +610,114 @@ export default function AdminDashboard() {
   );
 
   // --- PostListView ---
-  const PostListView = () => (
-    <div className="animate-in fade-in duration-300">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">事例データベース管理 (CMS)</h2>
-        <div className="flex justify-between items-center mb-6">
-  <h2 className="text-2xl font-bold text-gray-800">事例データベース管理 (CMS)</h2>
+const PostListView = () => (
+  <div className="animate-in fade-in duration-300">
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold text-gray-800">事例データベース管理 (CMS)</h2>
 
-  <div className="flex items-center gap-3">
-    {/* 年 */}
-    <select
-      value={filterYear}
-      onChange={(e) => setFilterYear(e.target.value)}
-      className="border px-3 py-2 rounded-lg text-sm bg-white"
-    >
-      <option value="all">年：すべて</option>
-      {years.map((y) => (
-        <option key={y} value={String(y)}>{y}年</option>
-      ))}
-    </select>
+      <div className="flex items-center gap-3">
+        {/* 年 */}
+        <select
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+          className="border px-3 py-2 rounded-lg text-sm bg-white"
+        >
+          <option value="all">年：すべて</option>
+          {years.map((y) => (
+            <option key={y} value={String(y)}>{y}年</option>
+          ))}
+        </select>
 
-    {/* 月 */}
-    <select
-      value={filterMonth}
-      onChange={(e) => setFilterMonth(e.target.value)}
-      className="border px-3 py-2 rounded-lg text-sm bg-white"
-    >
-      <option value="all">月：すべて</option>
-      {months.map((m) => (
-        <option key={m} value={m}>{m}月</option>
-      ))}
-    </select>
+        {/* 月 */}
+        <select
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+          className="border px-3 py-2 rounded-lg text-sm bg-white"
+        >
+          <option value="all">月：すべて</option>
+          {months.map((m) => (
+            <option key={m} value={m}>{m}月</option>
+          ))}
+        </select>
 
-    {/* 解除 */}
-    <button
-      onClick={() => { setFilterYear('all'); setFilterMonth('all'); }}
-      className="border px-3 py-2 rounded-lg text-sm font-bold hover:bg-gray-50"
-    >
-      解除
-    </button>
-        <button onClick={handleCreateNew} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-red-700 transition shadow-sm"><Plus size={20} /> 新規事例作成</button>
+        {/* 解除 */}
+        <button
+          onClick={() => { setFilterYear('all'); setFilterMonth('all'); }}
+          className="border px-3 py-2 rounded-lg text-sm font-bold hover:bg-gray-50"
+        >
+          解除
+        </button>
+
+        {/* 新規作成 */}
+        <button
+          onClick={handleCreateNew}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-red-700 transition shadow-sm"
+        >
+          <Plus size={20} /> 新規事例作成
+        </button>
       </div>
-      {loading ? <div className="text-center py-10 text-gray-500">読み込み中...</div> : (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-sm">
-                <th className="p-4">ステータス</th><th className="p-4">タイトル / 企業名</th><th className="p-4">カテゴリ</th><th className="p-4">スコア</th><th className="p-4 text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.map(post => (
-                <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="p-4">
-                    {post.status === 'published' ? <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-bold">公開</span> : 
-                     post.status === 'private' ? <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-bold">非公開</span> : 
-                     <span className="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-bold">下書き</span>}
-                  </td>
-                  <td className="p-4"><div className="font-bold max-w-xs truncate">{post.title}</div><div className="text-xs text-gray-500">{post.company}</div></td>
-                  <td className="p-4"><span className="text-xs bg-gray-100 px-2 py-1 rounded">{CATEGORIES[post.category_type as keyof typeof CATEGORIES]?.label}</span></td>
-                  <td className="p-4 text-red-600 font-bold">{post.score}</td>
-                  <td className="p-4 text-right">
-                    <button onClick={() => handleEdit(post)} className="text-gray-400 hover:text-gray-800 p-2 mr-2"><Edit size={18} /></button>
-                    <button onClick={() => handleDeletePost(post.id)} className="text-gray-400 hover:text-red-600 p-2"><Trash2 size={18} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-          <Pagination
-          page={postsPage}
-          totalCount={postsTotalCount}
-          pageSize={POSTS_PAGE_SIZE}
-          onChange={(p) => setPostsPage(p)}
-          />
     </div>
-  );
+
+    {loading ? (
+      <div className="text-center py-10 text-gray-500">読み込み中...</div>
+    ) : (
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-sm">
+              <th className="p-4">ステータス</th>
+              <th className="p-4">タイトル / 企業名</th>
+              <th className="p-4">カテゴリ</th>
+              <th className="p-4">スコア</th>
+              <th className="p-4 text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="p-4">
+                  {post.status === 'published' ? (
+                    <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-bold">公開</span>
+                  ) : post.status === 'private' ? (
+                    <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-bold">非公開</span>
+                  ) : (
+                    <span className="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-bold">下書き</span>
+                  )}
+                </td>
+                <td className="p-4">
+                  <div className="font-bold max-w-xs truncate">{post.title}</div>
+                  <div className="text-xs text-gray-500">{post.company}</div>
+                </td>
+                <td className="p-4">
+                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                    {CATEGORIES[post.category_type as keyof typeof CATEGORIES]?.label}
+                  </span>
+                </td>
+                <td className="p-4 text-red-600 font-bold">{post.score}</td>
+                <td className="p-4 text-right">
+                  <button onClick={() => handleEdit(post)} className="text-gray-400 hover:text-gray-800 p-2 mr-2">
+                    <Edit size={18} />
+                  </button>
+                  <button onClick={() => handleDeletePost(post.id)} className="text-gray-400 hover:text-red-600 p-2">
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    <Pagination
+      page={postsPage}
+      totalCount={postsTotalCount}
+      pageSize={POSTS_PAGE_SIZE}
+      onChange={(p) => setPostsPage(p)}
+    />
+  </div>
+);
+
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex">
