@@ -17,7 +17,7 @@ type CategoryValue = { label: string; color: string };
 const CATEGORIES: Record<CategoryKey, CategoryValue> = {
   CREATIVE: { label: 'クリエイティブ表現', color: 'bg-purple-100 text-purple-800' },
   SERVICE: { label: '商品・サービス・接客', color: 'bg-orange-100 text-orange-800' },
-  GOVERNANCE: { label: 'コンプライアンス', color: 'bg-gray-100 text-gray-800' },
+  GOVERNANCE: { label: '企業コンプライアンス', color: 'bg-gray-100 text-gray-800' },
   COMMUNICATION: { label: 'SNSコミュニケーション', color: 'bg-blue-100 text-blue-800' },
 };
 
