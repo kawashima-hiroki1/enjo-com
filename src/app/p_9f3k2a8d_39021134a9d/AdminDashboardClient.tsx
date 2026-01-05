@@ -995,8 +995,8 @@ function EditView({
            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
              <h3 className="font-bold text-sm text-gray-500 uppercase tracking-wider">スコアリング</h3>
              <div>
-               <label className="block text-sm font-bold text-gray-700 mb-2">影響度: <span className="text-red-600 text-xl">★{parseFloat(formData.score).toFixed(1)}</span></label>
-               <input type="range" name="score" min="1.0" max="5.0" step="0.1" value={formData.score} onChange={handleChange} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600 mb-2" />
+               <label className="block text-sm font-bold text-gray-700 mb-2">影響度スコア: <span className="text-red-600 text-xl">★{parseFloat(formData.score).toFixed(1)}</span></label>
+               <input type="range" name="score" min="1.0" max="5.0" step="1.0" value={formData.score} onChange={handleChange} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600 mb-2" />
                <div className="bg-red-50 border border-red-100 p-3 rounded-lg">
                  <p className="font-bold text-red-800 text-sm mb-1">{scoreInfo.label}</p>
                  <p className="text-xs text-gray-600 leading-snug">{scoreInfo.desc}</p>
