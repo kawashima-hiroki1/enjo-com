@@ -40,7 +40,7 @@ type Post = {
   updated_at?: string;
 };
 
-const INDUSTRIES: string[] = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業"];
+const INDUSTRIES: string[] = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業", "非営利"];
 const LISTING_STATUSES: string[] = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
 const MEDIA_SOURCES: string[] = ["Yahoo!ニュース", "X (旧Twitter)", "SmartNews", "LINE NEWS", "ITmedia", "ハフポスト", "PR TIMES", "Togetter", "YouTube", "テレビ報道", "その他"];
 
