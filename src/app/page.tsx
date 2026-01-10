@@ -742,311 +742,355 @@ const { data, error, count } = await q.range(from, to);
                 </button>
               </div>
             )}
-          
-<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-  {/* 見出し */}
-  <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-    <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
-      <Filter size={16} /> カテゴリ絞り込み
-    </div>
-  </div>
 
-  <div className="p-6 relative">
-    {!isLoggedIn && (
-      <div
-        className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center cursor-pointer backdrop-blur-[1px]"
-        onClick={() => setShowGateModal(true)}
-      >
-        {/* 検索ロック */}
-      </div>
-    )}
-
-    {/* 2段構成 */}
-    <div className="space-y-6">
-      {/* 上段：年代 / 月（中央寄せ） */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-        {/* 年代 */}
-        <div className="relative">
-          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">年代</label>
-          <div className="relative">
-            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
-              <Calendar size={18} />
-            </div>
-            <select
-              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-            >
-              <option value="">すべての年代</option>
-              {["2026","2025","2024","2023","2022","2021","2020","2019"].map((year) => (
-                <option key={year} value={year}>{year}年</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-          </div>
-        </div>
-
-        {/* 月 */}
-        <div className="relative">
-          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">月</label>
-          <div className="relative">
-            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
-              <Calendar size={18} />
-            </div>
-            <select
-              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-              value={filterMonth}
-              onChange={(e) => setFilterMonth(e.target.value)}
-            >
-              <option value="">すべての月</option>
-              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((mm) => (
-                <option key={mm} value={mm}>{mm}月</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-          </div>
+            {/* ====== ここから：左サイドバー + 右一覧の2カラム ====== */}
+<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  {/* 左：サイドバー（絞り込み + 影響度） */}
+  <aside className="lg:col-span-4 xl:col-span-3 space-y-6">
+    {/* 絞り込み */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* 見出し */}
+      <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+        <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          <Filter size={16} /> カテゴリ絞り込み
         </div>
       </div>
 
-      {/* 下段：業界 / カテゴリ / 上場区分 / 検索 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        {/* 業界 */}
-        <div className="relative">
-          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">業界</label>
-          <div className="relative">
-            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
-              <Filter size={18} />
-            </div>
-            <select
-              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-              value={filterIndustry}
-              onChange={(e) => setFilterIndustry(e.target.value)}
-            >
-              <option value="">すべての業界</option>
-              {INDUSTRIES.map((i) => (
-                <option key={i} value={i}>{i}</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-          </div>
-        </div>
-
-        {/* カテゴリ */}
-        <div className="relative">
-          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">カテゴリ</label>
-          <div className="relative">
-            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
-              <AlertTriangle size={18} />
-            </div>
-            <select
-              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              <option value="">すべてのカテゴリ</option>
-              {Object.entries(CATEGORIES).map(([key, val]) => (
-                <option key={key} value={key}>{val.label}</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-          </div>
-        </div>
-
-        {/* 上場区分 */}
-        <div className="relative">
-          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">上場区分</label>
-          <div className="relative">
-            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
-              <Building size={18} />
-            </div>
-            <select
-              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-              value={filterListing}
-              onChange={(e) => setFilterListing(e.target.value)}
-            >
-              <option value="">すべて</option>
-              {LISTING_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-          </div>
-        </div>
-
-        {/* 検索ボタン */}
-        <button
-          onClick={handleCategorySearch}
-          className="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm w-full"
-          disabled={!isLoggedIn}
-        >
-          検索
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-            {/* 影響度スコアの定義エリア（常に表示） */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-              <div className="flex items-center mb-4">
-                <h3 className="font-bold text-gray-800 flex items-center">
-                  <Info size={18} className="mr-2 text-gray-500" />
-                  影響度スコアの目安
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {Object.entries(SCORE_DEFINITIONS).map(([score, def]) => (
-                  <div key={score} className="bg-gray-50 rounded-lg p-3 border border-gray-100 flex flex-col h-full">
-                    <div className="flex items-center gap-1 mb-2">
-                      <Flame size={16} className={`fill-red-500 ${Number(score) >= 4 ? 'text-red-600' : 'text-red-500'}`} />
-                      <span className="font-bold text-lg text-gray-900">{score}</span>
-                      <span className="text-xs font-bold text-gray-500 ml-1 bg-white px-1.5 py-0.5 rounded border border-gray-200">{def.label}</span>
-                    </div>
-                    <p className="text-xs text-gray-600 leading-snug flex-1">
-                      {def.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative">
-              {loading ? (
-                <div className="text-center py-20 text-gray-500">データを読み込み中...</div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {displayData.map((item) => {
-                    const categoryType = item.category_type;
-                    const categoryObj = CATEGORIES[categoryType as keyof typeof CATEGORIES];
-
-                    return (
-                      <div key={item.id} onClick={() => handleItemClick(item)} className="group bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-red-300 transition cursor-pointer relative overflow-hidden">
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${categoryObj?.label.includes('表現') ? 'bg-purple-500' : categoryObj?.label.includes('ガバナンス') ? 'bg-gray-500' : 'bg-blue-500'}`}></div>
-                        <div className="flex justify-between items-start pl-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className={`text-xs px-2 py-0.5 rounded font-medium ${categoryObj?.color}`}>{categoryObj?.label}</span>
-                              <span className="text-xs text-gray-400">{item.date} 発生</span>
-                              <span className="text-xs text-gray-400">| {item.industry}</span>
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition">
-                              {isLoggedIn ? item.title : `【${categoryObj?.label}】${getCompanyName(item)}で発生した炎上事例`}
-                            </h3>
-                            <div className="flex gap-2 mt-2">
-                              {isLoggedIn ? (
-                                item.tags && item.tags.map((tag: string, i: number) => <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">#{tag}</span>)
-                              ) : (
-                                <>
-                                  <span className="text-xs bg-gray-100 text-transparent px-2 py-1 rounded blur-sm select-none">#SampleTag</span>
-                                  <span className="text-xs bg-gray-100 text-transparent px-2 py-1 rounded blur-sm select-none">#HiddenTag</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end min-w-[100px]">
-                            <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();      
-                              toggleFavorite(item.id);
-                            }}
-                            className="mb-2 p-2 rounded hover:bg-gray-100"
-                            aria-label="お気に入り"
-                            >
-                              <Star
-                              size={20}
-                              className={
-                                favoriteIds.has(item.id)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-400"
-                              }
-                              />
-                              </button>
-                            <div className="text-xs text-gray-400 mb-1">影響度スコア</div>
-                            <div className="flex items-center space-x-1"><Flame size={16} className={item.score >= 4.0 ? "text-red-600 fill-red-600" : "text-red-500"} /><span className={`text-2xl font-bold ${item.score >= 4.0 ? "text-red-600" : "text-gray-800"}`}>{item.score?.toFixed(1)}</span></div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* ページネーション */}
-              {isLoggedIn && totalCount > 0 && (
-                <div className="mt-8 flex flex-col items-center gap-3">
-                  <div className="text-sm text-gray-500">
-                    {totalCount}件中 {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示
-                    （{page} / {totalPages}ページ）
-                    </div>
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => goToPage(page - 1)}
-        disabled={page <= 1}
-        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
-      >
-        前へ
-      </button>
-
-      {/* ページ番号（多すぎるときは後で改良する） */}
-      <div className="flex items-center gap-1">
-        <div className="flex items-center gap-1">
-          {getPageItems(page, totalPages).map((item, idx) => {
-            if (item === '…') {
-              return (
-              <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 select-none">
-                …
-                </span>
-                );
-              }
-
-    const p = item as number;
-    return (
-      <button
-        key={p}
-        onClick={() => goToPage(p)}
-        className={`h-9 w-9 rounded-lg text-sm font-bold border transition
-          ${p === page ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
-      >
-        {p}
-      </button>
-    );
-  })}
-</div>
-      </div>
-
-      <button
-        onClick={() => goToPage(page + 1)}
-        disabled={page >= totalPages}
-        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
-      >
-        次へ
-      </button>
-    </div>
-  </div>
-)}
-
-
-              {!isLoggedIn && hiddenCount > 0 && (
-                <div className="mt-6 text-center">
-                  <div className="p-8 bg-gray-100 rounded-xl border border-dashed border-gray-300">
-                    <p className="text-gray-600 font-bold mb-4 text-lg">残りの事例を確認するには</p>
-                    <button 
-                      onClick={() => onShowAuth('register')}
-                      className="bg-red-600 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-red-700 transition shadow-xl flex items-center mx-auto"
-                    >
-                      <Lock size={18} className="mr-2" />
-                      会員登録して全て見る
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {selectedIncident && <DetailModal />}
-            {showGateModal && <GateModal />}
-          </>
+      <div className="p-4 sm:p-6 relative">
+        {!isLoggedIn && (
+          <div
+            className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center cursor-pointer backdrop-blur-[1px]"
+            onClick={() => setShowGateModal(true)}
+          />
         )}
+
+        {/* PCでは左寄せの縦並び（上段:年/月 → 中段:業界/カテゴリ/上場区分 → 下段:検索） */}
+        <div className="space-y-4">
+          {/* 上段：年 / 月 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+            {/* 年代 */}
+            <div className="relative">
+              <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">年代</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+                  <Calendar size={18} />
+                </div>
+                <select
+                  className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                >
+                  <option value="">すべての年代</option>
+                  {["2026","2025","2024","2023","2022","2021","2020","2019"].map((year) => (
+                    <option key={year} value={year}>{year}年</option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+              </div>
+            </div>
+
+            {/* 月 */}
+            <div className="relative">
+              <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">月</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+                  <Calendar size={18} />
+                </div>
+                <select
+                  className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                  value={filterMonth}
+                  onChange={(e) => setFilterMonth(e.target.value)}
+                >
+                  <option value="">すべての月</option>
+                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((mm) => (
+                    <option key={mm} value={mm}>{mm}月</option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+              </div>
+            </div>
+          </div>
+
+          {/* 中段：業界 / カテゴリ / 上場区分（PCは縦に3つ、SPはそのまま） */}
+          <div className="space-y-3">
+            {/* 業界 */}
+            <div className="relative">
+              <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">業界</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+                  <Filter size={18} />
+                </div>
+                <select
+                  className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                  value={filterIndustry}
+                  onChange={(e) => setFilterIndustry(e.target.value)}
+                >
+                  <option value="">すべての業界</option>
+                  {INDUSTRIES.map((i) => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+              </div>
+            </div>
+
+            {/* カテゴリ */}
+            <div className="relative">
+              <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">カテゴリ</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+                  <AlertTriangle size={18} />
+                </div>
+                <select
+                  className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                >
+                  <option value="">すべてのカテゴリ</option>
+                  {Object.entries(CATEGORIES).map(([key, val]) => (
+                    <option key={key} value={key}>{val.label}</option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+              </div>
+            </div>
+
+            {/* 上場区分 */}
+            <div className="relative">
+              <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">上場区分</label>
+              <div className="relative">
+                <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+                  <Building size={18} />
+                </div>
+                <select
+                  className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                  value={filterListing}
+                  onChange={(e) => setFilterListing(e.target.value)}
+                >
+                  <option value="">すべて</option>
+                  {LISTING_STATUSES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+              </div>
+            </div>
+          </div>
+
+          {/* 下段：検索ボタン */}
+          <button
+            onClick={handleCategorySearch}
+            className="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm w-full"
+            disabled={!isLoggedIn}
+          >
+            検索
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* 影響度スコア（PCは1カラムで縦積み） */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="flex items-center mb-4">
+        <h3 className="font-bold text-gray-800 flex items-center">
+          <Info size={18} className="mr-2 text-gray-500" />
+          影響度スコアの目安
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {Object.entries(SCORE_DEFINITIONS).map(([score, def]) => (
+          <div
+            key={score}
+            className="bg-gray-50 rounded-lg p-4 border border-gray-100 flex items-start gap-3"
+          >
+            <div className="shrink-0 flex items-center gap-1">
+              <Flame
+                size={16}
+                className={`fill-red-500 ${Number(score) >= 4 ? "text-red-600" : "text-red-500"}`}
+              />
+              <span className="font-bold text-lg text-gray-900">{score}</span>
+            </div>
+
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-gray-500 inline-flex items-center bg-white px-2 py-0.5 rounded border border-gray-200">
+                {def.label}
+              </div>
+              <p className="text-xs text-gray-600 leading-snug mt-1">
+                {def.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </aside>
+
+  {/* 右：事例一覧（カード群 + ページネーション） */}
+  <section className="lg:col-span-8 xl:col-span-9">
+    <div className="relative">
+      {loading ? (
+        <div className="text-center py-20 text-gray-500">データを読み込み中...</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {displayData.map((item) => {
+            const categoryType = item.category_type;
+            const categoryObj = CATEGORIES[categoryType as keyof typeof CATEGORIES];
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleItemClick(item)}
+                className="group bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-red-300 transition cursor-pointer relative overflow-hidden"
+              >
+                <div
+                  className={`absolute left-0 top-0 bottom-0 w-1 ${
+                    categoryObj?.label.includes("表現")
+                      ? "bg-purple-500"
+                      : categoryObj?.label.includes("ガバナンス")
+                      ? "bg-gray-500"
+                      : "bg-blue-500"
+                  }`}
+                />
+
+                <div className="flex justify-between items-start pl-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${categoryObj?.color}`}>
+                        {categoryObj?.label}
+                      </span>
+                      <span className="text-xs text-gray-400">{item.date} 発生</span>
+                      <span className="text-xs text-gray-400">| {item.industry}</span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition">
+                      {isLoggedIn ? item.title : `【${categoryObj?.label}】${getCompanyName(item)}で発生した炎上事例`}
+                    </h3>
+
+                    <div className="flex gap-2 mt-2">
+                      {isLoggedIn ? (
+                        item.tags?.map((tag: string, i: number) => (
+                          <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            #{tag}
+                          </span>
+                        ))
+                      ) : (
+                        <>
+                          <span className="text-xs bg-gray-100 text-transparent px-2 py-1 rounded blur-sm select-none">
+                            #SampleTag
+                          </span>
+                          <span className="text-xs bg-gray-100 text-transparent px-2 py-1 rounded blur-sm select-none">
+                            #HiddenTag
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end min-w-[100px]">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(item.id);
+                      }}
+                      className="mb-2 p-2 rounded hover:bg-gray-100"
+                      aria-label="お気に入り"
+                    >
+                      <Star
+                        size={20}
+                        className={
+                          favoriteIds.has(item.id)
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-400"
+                        }
+                      />
+                    </button>
+
+                    <div className="text-xs text-gray-400 mb-1">影響度スコア</div>
+                    <div className="flex items-center space-x-1">
+                      <Flame size={16} className={item.score >= 4.0 ? "text-red-600 fill-red-600" : "text-red-500"} />
+                      <span className={`text-2xl font-bold ${item.score >= 4.0 ? "text-red-600" : "text-gray-800"}`}>
+                        {item.score?.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ページネーション（今のまま貼り替え） */}
+      {isLoggedIn && totalCount > 0 && (
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="text-sm text-gray-500">
+            {totalCount}件中 {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示（{page} / {totalPages}ページ）
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page <= 1}
+              className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
+            >
+              前へ
+            </button>
+
+            <div className="flex items-center gap-1">
+              {getPageItems(page, totalPages).map((it, idx) => {
+                if (it === "…") {
+                  return (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 select-none">
+                      …
+                    </span>
+                  );
+                }
+                const p = it as number;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    className={`h-9 w-9 rounded-lg text-sm font-bold border transition ${
+                      p === page ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages}
+              className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
+            >
+              次へ
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 未ログイン時の残り表示 */}
+      {!isLoggedIn && hiddenCount > 0 && (
+        <div className="mt-6 text-center">
+          <div className="p-8 bg-gray-100 rounded-xl border border-dashed border-gray-300">
+            <p className="text-gray-600 font-bold mb-4 text-lg">残りの事例を確認するには</p>
+            <button
+              onClick={() => onShowAuth("register")}
+              className="bg-red-600 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-red-700 transition shadow-xl flex items-center mx-auto"
+            >
+              <Lock size={18} className="mr-2" />
+              会員登録して全て見る
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</div>
       </main>
 
       <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
