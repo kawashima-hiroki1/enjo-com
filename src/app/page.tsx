@@ -1085,12 +1085,14 @@ const { data, error, count } = await q.range(from, to);
               <Lock size={18} className="mr-2" />
               会員登録して全て見る
             </button>
-          </div>
-        </div>
-      )}
-    </div>
-  </section>
-</div>
+          　</div>
+        　</div>
+      　　　　　　)}
+    　　　　　　　</div>
+  　　　　　　　</section>
+　　　　　　　</div>
+        　</>
+      　)} 
       </main>
 
       <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
