@@ -231,7 +231,7 @@ export default function PrivacyPage() {
             <p className="text-s text-gray-500">お問い合わせ先</p>
             <p className="text-sm text-gray-700 m-0">Flock株式会社</p>
             <p className="text-sm text-gray-700 m-0">info@flock-inc.com</p>
-            <p className="text-sm text-gray-700 m-0">2026年1月13日制定</p>
+            <p className="mt-2 text-sm text-gray-700 m-0">2026年1月13日制定</p>
           </div>
         </div>
       </main>
