@@ -4,24 +4,25 @@ import React, { useState, useEffect} from 'react';
 import { 
   Flame, Mail, Lock, ArrowRight, Building2, User, CheckCircle, 
   AlertCircle, Eye, EyeOff, ShieldCheck, Briefcase, ArrowLeft, Send, FileText,
-  AlertTriangle, TrendingUp, Search, BarChart2, Shield, ChevronRight, X, Info, 
-  Clock, ArrowDown, Settings, LogOut, CreditCard, Bell, Filter, Calendar, Link as LinkIcon, ExternalLink, Newspaper, Building, ChevronDown, Star
+  AlertTriangle, TrendingUp, BarChart2, Shield, ChevronRight, X, Info, 
+  Clock, ArrowDown, Settings, LogOut, CreditCard, Bell, Filter, Calendar, Link as LinkIcon, ExternalLink, Newspaper, Building, ChevronDown, Star,
+  AArrowDown
 } from 'lucide-react';
 import Link from "next/link";
 // Supabase接続を有効化
 import { supabase } from '../lib/supabaseClient';
 
 // --- フリーアドレス定数定義 ---
-const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.co.jp', 'hotmail.com', 'outlook.com', 'icloud.com', 'docomo.ne.jp', 'ezweb.ne.jp', 'softbank.ne.jp', 'i.softbank.jp'];
+const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.co.jp', 'hotmail.com', 'outlook.com', 'icloud.com'];
 
 const CATEGORIES = {
-  CREATIVE: { label: 'クリエイティブ表現', color: 'bg-purple-100 text-purple-800' }, 
+  CREATIVE: { label: 'クリエイティブ・表現', color: 'bg-purple-100 text-purple-800' }, 
   SERVICE: { label: '商品・サービス・接客', color: 'bg-orange-100 text-orange-800' }, 
-  GOVERNANCE: { label: '企業コンプライアンス', color: 'bg-gray-100 text-gray-800' }, 
-  COMMUNICATION: { label: 'SNSコミュニケーション', color: 'bg-blue-100 text-blue-800' }, 
+  GOVERNANCE: { label: 'コンプライアンス・組織', color: 'bg-gray-100 text-gray-800' }, 
+  COMMUNICATION: { label: 'SNS・コミュニケーション', color: 'bg-blue-100 text-blue-800' }, 
 };
 
-const INDUSTRIES = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業", "非営利"];
+const INDUSTRIES = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業"];
 const LISTING_STATUSES = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
 
 // 影響度スコアの定義
@@ -219,12 +220,14 @@ const Dashboard = ({
   const [filterIndustry, setFilterIndustry] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterYear, setFilterYear] = useState(''); 
+  const [filterMonth, setFilterMonth] = useState('');
   const [filterListing, setFilterListing] = useState('');
 
   // 実際にフィルタを適用するトリガー用
   const [appliedIndustry, setAppliedIndustry] = useState('');
   const [appliedCategory, setAppliedCategory] = useState('');
   const [appliedYear, setAppliedYear] = useState('');
+  const [appliedMonth, setAppliedMonth] = useState('');
   const [appliedListing, setAppliedListing] = useState('');
   
   // 未ログイン時の制限モーダル
@@ -239,17 +242,41 @@ const Dashboard = ({
   
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-  
+      
       // ベースクエリ
       let q = supabase
-        .from('posts')
-        .select('*', { count: 'exact' })
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false });
-  
-      // ページネーション
-      const { data, error, count } = await q.range(from, to);
+      .from("posts")
+      .select("*", { count: "exact" })
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
+      
+      // 業界
+      if (appliedIndustry) {
+        q = q.eq("industry", appliedIndustry);
+      }
+      
+      // カテゴリ
+      if (appliedCategory) {
+        q = q.eq("category_type", appliedCategory);
+      }
+      
+      // 上場区分
+      if (appliedListing) {
+        q = q.eq("listing_status", appliedListing);
+      }
+
+      // 年月
+      if (appliedYear) {
+        q = q.eq("incident_year", Number(appliedYear)); // "2025" -> 2025
+        }
+        if (appliedMonth) {
+          q = q.eq("incident_month", Number(appliedMonth)); // "01"でも1になる
+          }
+
+// ページネーション
+const { data, error, count } = await q.range(from, to);
+
   
       if (cancelled) return;
   
@@ -276,6 +303,7 @@ const Dashboard = ({
     appliedIndustry,
     appliedCategory,
     appliedYear,
+    appliedMonth,
     appliedListing,
   ]);
 
@@ -284,6 +312,7 @@ const Dashboard = ({
     setAppliedIndustry(filterIndustry);
     setAppliedCategory(filterCategory);
     setAppliedYear(filterYear);
+    setAppliedMonth(filterMonth);
     setAppliedListing(filterListing);
     setPage(1);
   };
@@ -584,7 +613,7 @@ const Dashboard = ({
                           <div className="relative z-10 w-6 h-6 flex-shrink-0 bg-white border-2 border-red-500 rounded-full flex items-center justify-center"><div className="w-2 h-2 bg-red-500 rounded-full"></div></div>
                           <div className="flex-1 -mt-1">
                             <div className="flex items-baseline gap-2 mb-1"><span className="font-bold text-sm text-red-600">{step.day}</span><h4 className="font-bold text-gray-800 text-sm">{step.title}</h4></div>
-                            <p className="text-sm text-gray-600 leading-snug whitespace-pre-line">{step.desc ?? ''}</p>
+                            <p className="text-sm text-gray-600 leading-snug">{step.desc}</p>
                           </div>
                         </div>
                       ))}</div>
@@ -592,6 +621,13 @@ const Dashboard = ({
                   </div>
                 </section>
               )}
+              <section>
+                <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center"><CheckCircle size={16} className="mr-2" /> 炎上.com 編集部の考察</h3>
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
+                  <div className="mb-4"><p className="text-xs font-bold text-blue-800 mb-1">要因分析</p><p className="text-gray-800 text-sm">{badMove}</p></div>
+                  <div className="pt-4 border-t border-blue-200"><p className="text-xs font-bold text-blue-800 mb-1">この事例からの学び</p><p className="text-gray-900 font-bold text-lg">{item.lesson}</p></div>
+                </div>
+              </section>
             </div>
             <div className="space-y-4">
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -722,17 +758,6 @@ const Dashboard = ({
                     {/* 検索ロック */}
                   </div>
                 )}
-                {searchMode === 'keyword' ? (
-                  <div className="flex gap-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-                      <input disabled={!isLoggedIn} type="text" placeholder="企業名、事象、タグなど..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none disabled:bg-gray-100" />
-                    </div>
-                    <button disabled={!isLoggedIn} onClick={() => {setDebouncedSearchTerm(searchTerm);setPage(1);}}
-                    className="bg-gray-800 text-white px-8 py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm disabled:opacity-50">検索</button>
-                  </div>
-                ) : (
-                  // カテゴリ検索フォーム実装
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                     <div className="relative">
                       <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">業界</label>
@@ -766,6 +791,23 @@ const Dashboard = ({
                         </select>
                         <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
                       </div>
+                      <div className="relative">
+                        <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">月</label>
+                        <div className="relative">
+                          <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><Calendar size={18} /></div>
+                          <select
+                          className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+                          value={filterMonth}
+                          onChange={(e) => setFilterMonth(e.target.value)}
+                          >
+                            <option value="">すべての月</option>
+                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map(mm => (
+                              <option key={mm} value={mm}>{mm}月</option>
+                              ))}
+                              </select>
+                              <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+                              </div>
+                              </div>
                     </div>
                     <div className="relative">
                       <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">上場区分</label>
@@ -780,7 +822,6 @@ const Dashboard = ({
                     </div>
                     <button onClick={handleCategorySearch} className="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm w-full" disabled={!isLoggedIn}>検索</button>
                   </div>
-                )}
               </div>
             </div>
 
