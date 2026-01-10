@@ -780,7 +780,7 @@ const { data, error, count } = await q.range(from, to);
                   value={filterYear}
                   onChange={(e) => setFilterYear(e.target.value)}
                 >
-                  <option value="">すべての年代</option>
+                  <option value="">すべて</option>
                   {["2026","2025","2024","2023","2022","2021","2020","2019"].map((year) => (
                     <option key={year} value={year}>{year}年</option>
                   ))}
@@ -801,10 +801,15 @@ const { data, error, count } = await q.range(from, to);
                   value={filterMonth}
                   onChange={(e) => setFilterMonth(e.target.value)}
                 >
-                  <option value="">すべての月</option>
-                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((mm) => (
-                    <option key={mm} value={mm}>{mm}月</option>
-                  ))}
+                  <option value="">すべて</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                  const mm = String(i + 1).padStart(2, "0"); // value用：01〜12
+                  const label = i + 1;                        // 表示用：1〜12
+                  return (
+                    <option key={mm} value={mm}>{label}月
+                    </option>
+                  );
+                })}
                 </select>
                 <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
               </div>
