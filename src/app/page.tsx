@@ -354,6 +354,14 @@ const { data, error, count } = await q.range(from, to);
     const [deleteConfirm, setDeleteConfirm] = useState("");
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
 
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileDraft, setProfileDraft] = useState({
+      company: "",
+      department: "",
+      name: "",
+    });
+    const [profileSaving, setProfileSaving] = useState(false);
+
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setPasswords({...passwords, [e.target.name]: e.target.value});
     };
@@ -413,6 +421,14 @@ const { data, error, count } = await q.range(from, to);
   }
     };
 
+  useEffect(() => {
+  setProfileDraft({
+    company: userProfile?.company ?? "",
+    department: userProfile?.department ?? "",
+    name: userProfile?.name ?? "",
+  });
+  }, [userProfile]);
+
     return (
       <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
         <div className="flex items-center">
@@ -428,24 +444,132 @@ const { data, error, count } = await q.range(from, to);
 
           <section className="mb-10">
             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">基本情報</h3>
+              <div className="flex justify-end gap-2 mb-4">
+                {!isEditingProfile ? (
+        <button
+          type="button"
+          onClick={() => setIsEditingProfile(true)}
+          className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold hover:bg-gray-50"
+          >
+          編集
+        </button>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              // 値を戻す
+              setProfileDraft({
+                company: userProfile?.company ?? "",
+                department: userProfile?.department ?? "",
+                name: userProfile?.name ?? "",
+              });
+              setIsEditingProfile(false);
+            }}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-bold hover:bg-gray-50"
+            disabled={profileSaving}
+            >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              // 保存処理（次のステップで関数化してもOK）
+              setProfileSaving(true);
+              try {
+                const { data: { user }, error: userErr } = await supabase.auth.getUser();
+                if (userErr || !user) throw new Error("ユーザー情報を取得できませんでした");
+                
+                // profiles を upsert（なければ作る / あれば更新）
+                  const { error: upsertErr } = await supabase
+                    .from("profiles")
+                    .upsert({
+                      id: user.id,
+                      company: profileDraft.company.trim(),
+                      department: profileDraft.department.trim(),
+                      name: profileDraft.name.trim(),
+                    });
+                
+                if (upsertErr) throw upsertErr;
+                // （任意）authのuser_metadataも揃えたいなら
+                await supabase.auth.updateUser({
+                  data: {
+                    company: profileDraft.company.trim(),
+                    department: profileDraft.department.trim(),
+                    name: profileDraft.name.trim(),
+                  },
+                });
+                
+                // 画面の表示を即時更新（Dashboardのstateを更新できる）
+                setUserProfile((prev: any) => ({
+                  ...prev,
+                  company: profileDraft.company.trim(),
+                  department: profileDraft.department.trim(),
+                  name: profileDraft.name.trim(),
+                }));
+                
+                setIsEditingProfile(false);
+                alert("基本情報を更新しました");
+              } catch (e: any) {
+                console.error(e);
+                alert(e?.message ?? "更新に失敗しました");
+              } finally {
+                setProfileSaving(false);
+              }
+            }}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-60"
+            disabled={profileSaving}
+            >
+            {profileSaving ? "保存中..." : "保存"}
+          </button>
+        </>
+      )}
+          </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">会社名</label>
-                <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
-                  {userProfile?.company || '未設定'}
-                </div>
+                {isEditingProfile ? (
+                  <input
+                    value={profileDraft.company}
+                    onChange={(e) => setProfileDraft((p) => ({ ...p, company: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    placeholder="会社名"
+                    />
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
+                      {userProfile?.company || "未設定"}
+                    </div>
+                  )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">部署名</label>
-                <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
-                  {userProfile?.department || '未設定'}
-                </div>
+                {isEditingProfile ? (
+                  <input
+                    value={profileDraft.department}
+                    onChange={(e) => setProfileDraft((p) => ({ ...p, department: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    placeholder="部署名"
+                    />
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
+                      {userProfile?.department || "未設定"}
+                    </div>
+                  )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">担当者氏名</label>
-                <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
-                  {userProfile?.name || '未設定'}
-                </div>
+                {isEditingProfile ? (
+                  <input
+                    value={profileDraft.name}
+                    onChange={(e) => setProfileDraft((p) => ({ ...p, name: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    placeholder="氏名"
+                    />
+                  ) : (
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800">
+                      {userProfile?.name || "未設定"}
+                    </div>
+                  )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
