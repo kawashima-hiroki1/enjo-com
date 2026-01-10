@@ -13,7 +13,7 @@ import Link from "next/link";
 import { supabase } from '../lib/supabaseClient';
 
 // --- フリーアドレス定数定義 ---
-const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.co.jp', 'hotmail.com', 'outlook.com', 'icloud.com'];
+const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.co.jp', 'hotmail.com', 'outlook.com', 'icloud.com','ezweb.ne.jp', 'au.com', 'docomo.ne.jp', 'softbank.ne.jp', 'i.softbank.jp'];
 
 const CATEGORIES = {
   CREATIVE: { label: 'クリエイティブ・表現', color: 'bg-purple-100 text-purple-800' }, 
