@@ -44,7 +44,7 @@ const Dashboard = ({
 }: {
   isLoggedIn: boolean,
   onShowAuth: (mode?: string, source?: string) => void,
-  onLogout: () => void
+  onLogout: () => void | Promise<void>
 }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'account'>('dashboard');
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -349,6 +349,9 @@ const { data, error, count } = await q.range(from, to);
   // --- アカウント設定画面 ---
   const AccountView = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState("");
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -374,6 +377,40 @@ const { data, error, count } = await q.range(from, to);
         setShowPasswordModal(false);
         setPasswords({ new: '', confirm: '' });
       }
+    };
+
+    const submitAccountDelete = async () => {
+  if (deleteConfirm.trim().toUpperCase() !== "DELETE") {
+    alert('確認のため "DELETE" と入力してください。');
+    return;
+  }
+
+  setDeleteLoading(true);
+  try {
+    const res = await fetch("/api/account/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(json?.error ?? "アカウント削除に失敗しました");
+      return;
+    }
+
+    // 成功 → ログアウト & 画面戻し
+    alert("アカウントを削除しました。ご利用ありがとうございました。");
+    await supabase.auth.signOut();
+    onLogout(); // 既存のログアウト処理に合わせたいならこれだけでもOK
+  } catch (e) {
+    console.error(e);
+    alert("通信エラーが発生しました");
+  } finally {
+    setDeleteLoading(false);
+    setShowDeleteModal(false);
+    setDeleteConfirm("");
+  }
     };
 
     return (
@@ -437,13 +474,80 @@ const { data, error, count } = await q.range(from, to);
                 </div>
                 <ChevronRight size={16} className="text-gray-400" />
               </button>
-              
+              <button onClick={() => setShowDeleteModal(true)}
+                className="w-full flex justify-between items-center p-4 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition text-left"
+                >
+                <div className="flex items-center">
+                  <AlertTriangle className="text-red-500 mr-3" size={20} />
+                  <div>
+                    <div className="font-bold text-red-700">アカウント削除</div>
+                    <div className="text-xs text-red-600">削除すると復元できません</div>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="text-red-300" />
+              </button>              
               <button onClick={onLogout} className="w-full flex justify-center items-center p-4 mt-8 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition font-bold">
                 <LogOut className="mr-2" size={20} /> ログアウト
               </button>
             </div>
           </section>
         </div>
+
+        {showDeleteModal && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+      <div className="bg-red-50 px-6 py-4 border-b border-red-100 flex justify-between items-center">
+        <h3 className="font-bold text-red-800">アカウント削除（最終確認）</h3>
+        <button
+          onClick={() => { setShowDeleteModal(false); setDeleteConfirm(""); }}
+          className="text-red-400 hover:text-red-600"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="p-6 space-y-4">
+        <div className="text-sm text-gray-700 leading-relaxed">
+          アカウントを削除すると、ログインできなくなり、保存データも削除されます。
+          <div className="mt-2 text-xs text-gray-500">
+            ※ 再作成は可能ですが、データの復元はできません。
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">
+            確認のため <span className="text-red-600">DELETE</span> と入力してください
+          </label>
+          <input
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+            placeholder="DELETE"
+          />
+        </div>
+
+        <div className="pt-2 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => { setShowDeleteModal(false); setDeleteConfirm(""); }}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition"
+            disabled={deleteLoading}
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={submitAccountDelete}
+            disabled={deleteLoading}
+            className="bg-red-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-red-700 transition disabled:opacity-60"
+          >
+            {deleteLoading ? "削除中..." : "削除する"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -512,12 +616,12 @@ const { data, error, count } = await q.range(from, to);
 
   // 詳細モーダル
   const DetailModal = () => {
-    if (!selectedIncident) return null;
-    const item = selectedIncident;
     
     // 類似事例データの取得（IDリストから検索）
     const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
 
+    const item = selectedIncident;
+    
     useEffect(() => {
       let cancelled = false;
       
@@ -554,6 +658,8 @@ const { data, error, count } = await q.range(from, to);
         cancelled = true;
       };
     }, [item.id]);
+
+    if (!selectedIncident) return null;
 
     const categoryType = item.category_type;
     const listingStatus = item.listing_status;
@@ -1090,15 +1196,15 @@ const { data, error, count } = await q.range(from, to);
               <Lock size={18} className="mr-2" />
               会員登録して全て見る
             </button>
-          　</div>
-        　</div>
-      　　　　　　)}
-    　　　　　　　</div>
-  　　　　　　　</section>
-　　　　　　　</div>
-        　</>
-      　)} 
-      </main>
+          </div>
+        </div>
+　　　　)}
+    </div>
+  </section>
+</div>
+</>
+　)} 
+</main>
 
       <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
