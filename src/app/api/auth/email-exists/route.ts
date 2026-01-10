@@ -3,25 +3,38 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // ← VercelのEnvironment Variablesに必須
   { auth: { persistSession: false } }
 );
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ exists: false }, { status: 400 });
+    const body = await req.json();
+    const email = String(body?.email ?? "").trim().toLowerCase();
+    if (!email) return NextResponse.json({ exists: false });
+
+    const perPage = 1000;
+    const maxPages = 10;
+    for (let page = 1; page <= maxPages; page++) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+
+      if (error) return NextResponse.json({ exists: false });
+
+      const users = data?.users ?? [];
+      const exists = users.some(
+        (u) => (u.email ?? "").toLowerCase() === email
+      );
+      if (exists) return NextResponse.json({ exists: true });
+
+      // これ以上ページが無い
+      if (users.length < perPage) break;
     }
 
-    // supabase-js v2 の admin API（登録メールの存在確認）
-    const { data, error } = await supabaseAdmin.auth.admin.getUserByEmail(email.trim().toLowerCase());
-
-    // error の内容は外に出さず、存在有無だけ返す
-    if (error) return NextResponse.json({ exists: false });
-
-    return NextResponse.json({ exists: !!data?.user });
+    return NextResponse.json({ exists: false });
   } catch {
-    return NextResponse.json({ exists: false }, { status: 200 });
+    return NextResponse.json({ exists: false });
   }
 }
