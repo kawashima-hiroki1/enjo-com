@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo} from 'react';
+import React, { useState, useEffect} from 'react';
 import { 
   Flame, Mail, Lock, ArrowRight, Building2, User, CheckCircle, 
   AlertCircle, Eye, EyeOff, ShieldCheck, Briefcase, ArrowLeft, Send, FileText,
@@ -48,9 +48,7 @@ const Dashboard = ({
   const [activeTab, setActiveTab] = useState<'dashboard' | 'account'>('dashboard');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [selectedIncident, setSelectedIncident] = useState<any>(null);
-  const [searchMode, setSearchMode] = useState('keyword');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
 
   // プロフィール設定画面
   useEffect(() => {
@@ -66,20 +64,18 @@ const Dashboard = ({
         setUserProfile(null);
         return;
       }
+
+      const emailVerified = !!(user.email_confirmed_at ?? (user as any).confirmed_at);
   
-      // ★ここでDB（profiles）から取る
-      // どちらのキーかで2パターンあるので、まずは「id=user.id」を試す
       const { data: profile, error: profErr } = await supabase
         .from('profiles')
         .select('company, department, name')
         .eq('id', user.id)
         .single();
   
-      // もし profiles が user_id で持ってる設計なら、上をこれに変更
-      // .eq('user_id', user.id)
-  
       setUserProfile({
         email: user.email,
+        emailVerified,
         company: profile?.company ?? user.user_metadata?.company ?? '',
         department: profile?.department ?? user.user_metadata?.department ?? '',
         name: profile?.name ?? user.user_metadata?.name ?? '',
@@ -189,7 +185,6 @@ const Dashboard = ({
 
   // ページネーション
   const PAGE_SIZE = 20;
-  const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   const goToPage = (p: number) => {
@@ -219,8 +214,6 @@ const Dashboard = ({
   };  
   
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const escapeLike = (s: string) =>
-  s.replace(/[%_]/g, (m) => `\\${m}`).trim();
 
   // カテゴリ検索用のState
   const [filterIndustry, setFilterIndustry] = useState('');
@@ -252,38 +245,8 @@ const Dashboard = ({
         .from('posts')
         .select('*', { count: 'exact' })
         .eq('status', 'published')
-        // ★安定ソート（created_at同点での重複/抜け防止）
         .order('created_at', { ascending: false })
         .order('id', { ascending: false });
-  
-      // --- 検索条件をSupabase側に寄せる ---
-      if (isLoggedIn) {
-        if (searchMode === 'keyword') {
-          const term = escapeLike(debouncedSearchTerm);
-          if (term) {
-            q = q.or(`title.ilike.%${term}%,company.ilike.%${term}%`);
-          }
-        } else {
-          // category mode（applied〜 を使う）
-          if (appliedIndustry) q = q.eq('industry', appliedIndustry);
-  
-          if (appliedCategory) {
-            // どっちのカラム名でも動くように
-            // ※あなたのデータが category_type に統一されてるなら、片方だけでOK
-            q = q.or(`category_type.eq.${appliedCategory},categoryType.eq.${appliedCategory}`);
-          }
-  
-          if (appliedListing) {
-            q = q.or(`listing_status.eq.${appliedListing},listingStatus.eq.${appliedListing}`);
-          }
-  
-          if (appliedYear) {
-            // date が "2024-..." みたいな文字列想定（今のUIの使い方的に）
-            // もし date がDATE型なら gte/lte に変更推奨
-            q = q.ilike('date', `${appliedYear}%`);
-          }
-        }
-      }
   
       // ページネーション
       const { data, error, count } = await q.range(from, to);
@@ -310,8 +273,6 @@ const Dashboard = ({
   }, [
     page,
     isLoggedIn,
-    searchMode,
-    debouncedSearchTerm,
     appliedIndustry,
     appliedCategory,
     appliedYear,
@@ -423,8 +384,12 @@ const Dashboard = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
                 <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-800 flex justify-between items-center">
-                  <span>{userProfile?.email || '未設定'}</span>
+                <span>{userProfile?.email || '未設定'}</span>
+                {userProfile?.emailVerified ? (
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">認証済</span>
+                ) : (
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">未認証</span>
+                )}
                 </div>
               </div>
             </div>
@@ -522,15 +487,49 @@ const Dashboard = ({
     const item = selectedIncident;
     
     // 類似事例データの取得（IDリストから検索）
-    const relatedIds = item.relatedPostIds || item.related_post_ids || [];
-    const relatedPosts = relatedIds.length > 0
-      ? posts.filter(p => relatedIds.includes(p.id)) 
-      : [];
+    const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
 
-    const categoryType = item.categoryType || item.category_type;
-    const listingStatus = item.listingStatus || item.listing_status;
-    const badMove = item.badMove || item.bad_move;
-    const relatedLinks = item.relatedLinks || item.related_links || [];
+    useEffect(() => {
+      let cancelled = false;
+      
+      const loadRelated = async () => {
+        const relatedIds = (item.related_post_ids ?? [])
+        .map((x: any) => Number(x))
+        .filter((x: number) => Number.isFinite(x));
+        
+        if (!relatedIds.length) {
+          setRelatedPosts([]);
+          return;
+        }
+        
+        const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .in('id', relatedIds)
+        .eq('status', 'published');
+        
+        if (cancelled) return;
+        if (error) {
+          console.error(error);
+          setRelatedPosts([]);
+          return;
+        }
+        
+        const map = new Map((data || []).map((x: any) => [x.id, x]));
+        setRelatedPosts(relatedIds.map((id: number) => map.get(id)).filter(Boolean));
+      };
+      
+      loadRelated();
+      
+      return () => {
+        cancelled = true;
+      };
+    }, [item.id]);
+
+    const categoryType = item.category_type;
+    const listingStatus = item.listing_status;
+    const badMove = item.bad_move;
+    const relatedLinks = item.related_links || [];
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedIncident(null)}>
@@ -691,7 +690,6 @@ const Dashboard = ({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500 flex-1">
-        {}
         {activeTab === 'account' ? (
           <AccountView />
         ) : (
@@ -711,8 +709,9 @@ const Dashboard = ({
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
               <div className="flex border-b border-gray-200 bg-gray-50">
-                <button onClick={() => setSearchMode('keyword')} className={`flex-1 py-4 text-sm font-bold text-center transition ${searchMode === 'keyword' ? 'bg-white text-red-600 border-t-2 border-t-red-600' : 'text-gray-500 hover:text-gray-700'}`}><span className="flex items-center justify-center gap-2"><Search size={16} /> フリーワード検索</span></button>
-                <button onClick={() => setSearchMode('category')} className={`flex-1 py-4 text-sm font-bold text-center transition ${searchMode === 'category' ? 'bg-white text-red-600 border-t-2 border-t-red-600' : 'text-gray-500 hover:text-gray-700'}`}><span className="flex items-center justify-center gap-2"><Filter size={16} /> カテゴリ絞り込み</span></button>
+              <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                <Filter size={16} /> カテゴリ絞り込み
+                </div>
               </div>
               <div className="p-6 relative">
                 {!isLoggedIn && (
@@ -729,7 +728,8 @@ const Dashboard = ({
                       <Search className="absolute left-3 top-3 text-gray-400" size={20} />
                       <input disabled={!isLoggedIn} type="text" placeholder="企業名、事象、タグなど..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none disabled:bg-gray-100" />
                     </div>
-                    <button disabled={!isLoggedIn} className="bg-gray-800 text-white px-8 py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm disabled:opacity-50">検索</button>
+                    <button disabled={!isLoggedIn} onClick={() => {setDebouncedSearchTerm(searchTerm);setPage(1);}}
+                    className="bg-gray-800 text-white px-8 py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm disabled:opacity-50">検索</button>
                   </div>
                 ) : (
                   // カテゴリ検索フォーム実装
@@ -814,7 +814,7 @@ const Dashboard = ({
               ) : (
                 <div className="grid grid-cols-1 gap-4">
                   {displayData.map((item) => {
-                    const categoryType = item.categoryType || item.category_type;
+                    const categoryType = item.category_type;
                     const categoryObj = CATEGORIES[categoryType as keyof typeof CATEGORIES];
 
                     return (
@@ -1154,6 +1154,50 @@ const AuthScreens = ({
 
   const isFooterMode = authSource === "footer";
 
+  // ログイン画面で「このメールは登録済み？」を判定するための状態
+  const [emailCheckStatus, setEmailCheckStatus] = useState<
+  "idle" | "checking" | "exists" | "not_exists"
+  >("idle");
+
+  useEffect(() => {
+    // ① login画面の時だけ判定したい
+    if (view !== "login") {
+      setEmailCheckStatus("idle");
+      return;
+    }
+  
+    // ② 入力されてるメールを取得（空白削除 + 小文字）
+    const email = registerFormData.email.trim().toLowerCase();
+  
+    // ③ まだ入力が弱い（空 / @なし）なら判定しない
+    if (!email || !email.includes("@")) {
+      setEmailCheckStatus("idle");
+      return;
+    }
+  
+    // ④ 入力中に毎回APIを叩かないため、0.5秒待ってから実行（デバウンス）
+    const timer = setTimeout(async () => {
+      setEmailCheckStatus("checking");
+  
+      try {
+        const res = await fetch("/api/auth/email-exists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+  
+        const json = await res.json();
+        setEmailCheckStatus(json.exists ? "exists" : "not_exists");
+      } catch {
+        // ⑤ エラー時は「判定できない」扱いに戻す
+        setEmailCheckStatus("idle");
+      }
+    }, 500);
+  
+    // ⑥ 入力が変わったら、前のタイマーはキャンセル
+    return () => clearTimeout(timer);
+  }, [view, registerFormData.email]);  
+
   // --- Supabase認証 ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1168,6 +1212,10 @@ const AuthScreens = ({
       onLogin();
     }
   };
+
+  // --- パスワード再設定用 ---
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleRegisterComplete = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1294,53 +1342,71 @@ const AuthScreens = ({
   }
 
   // --- パスワード再設定 ---
-  if (view === "forgot-password") {
-    return (
-      <AuthLayout
-        title="パスワードの再設定"
-        subtitle="ご登録のメールアドレスを入力してください。"
-        onBackToDashboard={onBackToDashboard}
-        footer={
-          <div className="text-center">
-            <button
-              onClick={() => setView("login")}
-              className="text-sm font-bold text-gray-600 hover:text-gray-900 transition flex items-center justify-center mx-auto"
-            >
-              <ArrowLeft size={16} className="mr-1" /> ログイン画面に戻る
-            </button>
-          </div>
-        }
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setView("login");
-            alert("再設定メールを送信しました");
-          }}
-          className="space-y-6"
-        >
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">メールアドレス</label>
-            <div className="relative">
-              <input
-                type="email"
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition"
-              />
-              <Mail className="absolute left-3 top-3.5 text-gray-400" size={18} />
-            </div>
-          </div>
-
+// --- パスワード再設定 ---
+if (view === "forgot-password") {
+  return (
+    <AuthLayout
+      title="パスワードの再設定"
+      subtitle="ご登録のメールアドレスを入力してください。"
+      onBackToDashboard={onBackToDashboard}
+      footer={
+        <div className="text-center">
           <button
-            type="submit"
-            className="w-full bg-gray-900 text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition shadow-lg flex justify-center items-center"
+            onClick={() => setView("login")}
+            className="text-sm font-bold text-gray-600 hover:text-gray-900 transition flex items-center justify-center mx-auto"
           >
-            再設定リンクを送信 <Send className="ml-2" size={18} />
+            <ArrowLeft size={16} className="mr-1" /> ログイン画面に戻る
           </button>
-        </form>
-      </AuthLayout>
-    );
-  }
+        </div>
+      }
+    >
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setResetLoading(true);
+
+          try {
+            const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+              redirectTo: `${window.location.origin}/auth/reset-password`,
+            });
+            if (error) throw error;
+
+            alert("再設定メールを送信しました（迷惑メールもご確認ください）");
+            setResetEmail("");
+            setView("login");
+          } catch (err: any) {
+            alert(err?.message ?? "送信に失敗しました。時間をおいて再度お試しください。");
+          } finally {
+            setResetLoading(false);
+          }
+        }}
+        className="space-y-6"
+      >
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">メールアドレス</label>
+          <div className="relative">
+            <input
+              type="email"
+              required
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none transition"
+            />
+            <Mail className="absolute left-3 top-3.5 text-gray-400" size={18} />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={resetLoading}
+          className="w-full bg-gray-900 text-white py-3 rounded-lg font-bold hover:bg-gray-800 transition shadow-lg flex justify-center items-center disabled:opacity-60"
+        >
+          {resetLoading ? "送信中..." : "再設定リンクを送信"} <Send className="ml-2" size={18} />
+        </button>
+      </form>
+    </AuthLayout>
+  );
+}
 
   // --- 登録成功 ---
   if (view === "register-success") {
@@ -1398,6 +1464,15 @@ const AuthScreens = ({
               />
               <Mail className="absolute left-3 top-3.5 text-gray-400" size={18} />
             </div>
+            {emailCheckStatus === "checking" && (
+              <p className="text-xs text-gray-500 mt-1">確認中...</p>
+              )}
+              {emailCheckStatus === "exists" && (
+                <p className="text-xs text-green-600 mt-1 flex items-center">
+                  <CheckCircle size={12} className="mr-1" />
+                  すでに登録済みのメールアドレスです
+                  </p>
+                )}
           </div>
 
           <div>
@@ -1591,7 +1666,6 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authSource, setAuthSource] = useState('register-flow');
 
-  // ★追加
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
