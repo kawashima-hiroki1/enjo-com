@@ -213,6 +213,7 @@ export default function TermsPage() {
                 info@flock-inc.com
               </a>
             </p>
+            <p className="mt-2 text-xs text-gray-500">2026年1月13日制定</p>
           </div>
         </div>
       </main>
