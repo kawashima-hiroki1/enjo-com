@@ -742,88 +742,149 @@ const { data, error, count } = await q.range(from, to);
                 </button>
               </div>
             )}
+          
+<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+  {/* 見出し */}
+  <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+    <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
+      <Filter size={16} /> カテゴリ絞り込み
+    </div>
+  </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-              <div className="flex border-b border-gray-200 bg-gray-50">
-              <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                <Filter size={16} /> カテゴリ絞り込み
-                </div>
-              </div>
-              <div className="p-6 relative">
-                {!isLoggedIn && (
-                  <div 
-                    className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center cursor-pointer backdrop-blur-[1px]"
-                    onClick={() => setShowGateModal(true)}
-                  >
-                    {/* 検索ロック */}
-                  </div>
-                )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                    <div className="relative">
-                      <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">業界</label>
-                      <div className="relative">
-                        <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><Filter size={18} /></div>
-                        <select className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm" value={filterIndustry} onChange={(e) => setFilterIndustry(e.target.value)}>
-                          <option value="">すべての業界</option>
-                          {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">カテゴリ</label>
-                      <div className="relative">
-                        <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><AlertTriangle size={18} /></div>
-                        <select className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-                          <option value="">すべてのカテゴリ</option>
-                          {Object.entries(CATEGORIES).map(([key, val]) => (<option key={key} value={key}>{val.label}</option>))}
-                        </select>
-                        <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">年代</label>
-                      <div className="relative">
-                        <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><Calendar size={18} /></div>
-                        <select className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm" value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
-                          <option value="">すべての年代</option>
-                          {['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019'].map(year => (<option key={year} value={year}>{year}年</option>))}
-                        </select>
-                        <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                      <div className="relative">
-                        <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">月</label>
-                        <div className="relative">
-                          <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><Calendar size={18} /></div>
-                          <select
-                          className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
-                          value={filterMonth}
-                          onChange={(e) => setFilterMonth(e.target.value)}
-                          >
-                            <option value="">すべての月</option>
-                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map(mm => (
-                              <option key={mm} value={mm}>{mm}月</option>
-                              ))}
-                              </select>
-                              <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-                              </div>
-                              </div>
-                    </div>
-                    <div className="relative">
-                      <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">上場区分</label>
-                      <div className="relative">
-                        <div className="absolute left-3 top-3 text-gray-500 pointer-events-none"><Building size={18} /></div>
-                        <select className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm" value={filterListing} onChange={(e) => setFilterListing(e.target.value)}>
-                          <option value="">すべて</option>
-                          {LISTING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                    <button onClick={handleCategorySearch} className="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm w-full" disabled={!isLoggedIn}>検索</button>
-                  </div>
-              </div>
+  <div className="p-6 relative">
+    {!isLoggedIn && (
+      <div
+        className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center cursor-pointer backdrop-blur-[1px]"
+        onClick={() => setShowGateModal(true)}
+      >
+        {/* 検索ロック */}
+      </div>
+    )}
+
+    {/* 2段構成 */}
+    <div className="space-y-6">
+      {/* 上段：年代 / 月（中央寄せ） */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        {/* 年代 */}
+        <div className="relative">
+          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">年代</label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+              <Calendar size={18} />
             </div>
+            <select
+              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+            >
+              <option value="">すべての年代</option>
+              {["2026","2025","2024","2023","2022","2021","2020","2019"].map((year) => (
+                <option key={year} value={year}>{year}年</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+
+        {/* 月 */}
+        <div className="relative">
+          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">月</label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+              <Calendar size={18} />
+            </div>
+            <select
+              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+            >
+              <option value="">すべての月</option>
+              {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((mm) => (
+                <option key={mm} value={mm}>{mm}月</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+      </div>
+
+      {/* 下段：業界 / カテゴリ / 上場区分 / 検索 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        {/* 業界 */}
+        <div className="relative">
+          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">業界</label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+              <Filter size={18} />
+            </div>
+            <select
+              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+              value={filterIndustry}
+              onChange={(e) => setFilterIndustry(e.target.value)}
+            >
+              <option value="">すべての業界</option>
+              {INDUSTRIES.map((i) => (
+                <option key={i} value={i}>{i}</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+
+        {/* カテゴリ */}
+        <div className="relative">
+          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">カテゴリ</label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+              <AlertTriangle size={18} />
+            </div>
+            <select
+              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="">すべてのカテゴリ</option>
+              {Object.entries(CATEGORIES).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+
+        {/* 上場区分 */}
+        <div className="relative">
+          <label className="block text-xs font-bold text-gray-500 mb-1 ml-1">上場区分</label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-500 pointer-events-none">
+              <Building size={18} />
+            </div>
+            <select
+              className="w-full pl-10 pr-8 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-red-500 focus:outline-none appearance-none cursor-pointer text-sm"
+              value={filterListing}
+              onChange={(e) => setFilterListing(e.target.value)}
+            >
+              <option value="">すべて</option>
+              {LISTING_STATUSES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <ChevronRight className="absolute right-3 top-3.5 text-gray-400 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+
+        {/* 検索ボタン */}
+        <button
+          onClick={handleCategorySearch}
+          className="bg-gray-800 text-white px-4 py-3 rounded-lg font-bold hover:bg-gray-700 transition shadow-sm w-full"
+          disabled={!isLoggedIn}
+        >
+          検索
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* 影響度スコアの定義エリア（常に表示） */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
