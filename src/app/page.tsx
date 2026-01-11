@@ -747,6 +747,7 @@ const { data, error, count } = await q.range(from, to);
     const item = selectedIncident;
     
     useEffect(() => {
+      if (!item) return;
       let cancelled = false;
       
       const loadRelated = async () => {
@@ -781,7 +782,7 @@ const { data, error, count } = await q.range(from, to);
       return () => {
         cancelled = true;
       };
-    }, [item.id]);
+    }, [item?.id]);
 
     if (!selectedIncident) return null;
 
@@ -1328,6 +1329,7 @@ const { data, error, count } = await q.range(from, to);
 </div>
 </>
 　)} 
+{selectedIncident && <DetailModal />}
 </main>
 
       <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
