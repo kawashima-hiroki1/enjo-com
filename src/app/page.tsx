@@ -1174,11 +1174,13 @@ const { data, error, count } = await q.range(from, to);
               >
                 <div
                   className={`absolute left-0 top-0 bottom-0 w-1 ${
-                    categoryObj?.label.includes("表現")
-                      ? "bg-purple-500"
-                      : categoryObj?.label.includes("ガバナンス")
-                      ? "bg-gray-500"
-                      : "bg-blue-500"
+                    categoryType === "CREATIVE"
+                    ? "bg-purple-500"
+                    : categoryType === "SERVICE"
+                    ? "bg-orange-500"
+                    : categoryType === "GOVERNANCE"
+                    ? "bg-gray-500"
+                    : "bg-blue-500" // COMMUNICATION
                   }`}
                 />
 
