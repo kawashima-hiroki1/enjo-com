@@ -397,9 +397,6 @@ export default function AdminDashboard() {
     industry: formData.industry,
     listing_status: formData.listing_status,
     date: `${formData.dateYear}年${formData.dateMonth}月`,
-    // incident_year と incident_month も保存
-    incident_year: Number(formData.dateYear),
-    incident_month: formData.dateMonth,
     category_type: formData.category_type,
     tags:
       typeof formData.tags === "string"
