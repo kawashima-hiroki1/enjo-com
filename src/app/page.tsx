@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { 
   Flame, Mail, Lock, ArrowRight, Building2, User, CheckCircle, 
   AlertCircle, Eye, EyeOff, ShieldCheck, Briefcase, ArrowLeft, Send, FileText,
@@ -90,6 +90,15 @@ const Dashboard = ({
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // setStateの対策
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
   // お気に入り
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
 
@@ -184,128 +193,120 @@ const Dashboard = ({
     }
   };  
 
-  // ページネーション
-  const PAGE_SIZE = 20;
-  const [totalCount, setTotalCount] = useState(0);
+    // ページネーション
+    const PAGE_SIZE = 20;
+    const [totalCount, setTotalCount] = useState(0);
 
-  const goToPage = (p: number) => {
-    const next = Math.min(Math.max(1, p), totalPages);
-    setPage(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // 任意：ページ切替時に上に戻す
-  };
+    const goToPage = (p: number) => {
+      const next = Math.min(Math.max(1, p), totalPages);
+      setPage(next);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // 任意：ページ切替時に上に戻す
+    };
 
-  const getPageItems = (current: number, total: number) => {
-    // totalが少ないなら全部出す
-    if (total <= 5) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
+    const getPageItems = (current: number, total: number) => {
+      // totalが少ないなら全部出す
+      if (total <= 5) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
   
-    // 先頭付近（1〜5を出して最後に…と最終ページ）
-    if (current <= 4) {
-      return [1, 2, 3, 4, 5, '…', total];
-    }
+      // 先頭付近（1〜5を出して最後に…と最終ページ）
+      if (current <= 4) {
+        return [1, 2, 3, 4, 5, '…', total];
+      }
   
-    // 末尾付近（最初に1と…、最後はtotal-4〜total）
-    if (current >= total - 3) {
-      return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
-    }
+      // 末尾付近（最初に1と…、最後はtotal-4〜total）
+      if (current >= total - 3) {
+        return [1, '…', total - 4, total - 3, total - 2, total - 1, total];
+      }
   
-    // 真ん中（1 … current-1 current current+1 … total）
-    return [1, '…', current - 1, current, current + 1, '…', total];
-  };  
+      // 真ん中（1 … current-1 current current+1 … total）
+      return [1, '…', current - 1, current, current + 1, '…', total];
+    };  
   
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // カテゴリ検索用のState
-  const [filterIndustry, setFilterIndustry] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterYear, setFilterYear] = useState(''); 
-  const [filterMonth, setFilterMonth] = useState('');
-  const [filterListing, setFilterListing] = useState('');
+    // カテゴリ検索用のState
+    const [filterIndustry, setFilterIndustry] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
+    const [filterYear, setFilterYear] = useState(''); 
+    const [filterMonth, setFilterMonth] = useState('');
+    const [filterListing, setFilterListing] = useState('');
 
-  // 実際にフィルタを適用するトリガー用
-  const [appliedIndustry, setAppliedIndustry] = useState('');
-  const [appliedCategory, setAppliedCategory] = useState('');
-  const [appliedYear, setAppliedYear] = useState('');
-  const [appliedMonth, setAppliedMonth] = useState('');
-  const [appliedListing, setAppliedListing] = useState('');
+    // 実際にフィルタを適用するトリガー用
+    const [appliedIndustry, setAppliedIndustry] = useState('');
+    const [appliedCategory, setAppliedCategory] = useState('');
+    const [appliedYear, setAppliedYear] = useState('');
+    const [appliedMonth, setAppliedMonth] = useState('');
+    const [appliedListing, setAppliedListing] = useState('');
   
-  // 未ログイン時の制限モーダル
-  const [showGateModal, setShowGateModal] = useState(false);
+    // 未ログイン時の制限モーダル
+    const [showGateModal, setShowGateModal] = useState(false);
 
-  // 初期ロード：Supabaseからデータ取得
-  useEffect(() => {
-    let cancelled = false;
-  
-    const fetchPosts = async () => {
+    // 初期ロード：Supabaseからデータ取得
+    const fetchPosts = useCallback(async () => {
       setLoading(true);
-  
-      const from = (page - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      
-      // ベースクエリ
-      let q = supabase
+
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    let q = supabase
       .from("posts")
       .select("*", { count: "exact" })
       .eq("status", "published")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false });
-      
-      // 業界
-      if (appliedIndustry) {
-        q = q.eq("industry", appliedIndustry);
-      }
-      
-      // カテゴリ
-      if (appliedCategory) {
-        q = q.eq("category_type", appliedCategory);
-      }
-      
-      // 上場区分
-      if (appliedListing) {
-        q = q.eq("listing_status", appliedListing);
-      }
 
-      // 年月
-      if (appliedYear) {
-        q = q.eq("incident_year", Number(appliedYear)); // "2025" -> 2025
-        }
-        if (appliedMonth) {
-          q = q.eq("incident_month", Number(appliedMonth)); // "01"でも1になる
-          }
+    if (appliedIndustry) q = q.eq("industry", appliedIndustry);
+    if (appliedCategory) q = q.eq("category_type", appliedCategory);
+    if (appliedListing) q = q.eq("listing_status", appliedListing);
 
-// ページネーション
-const { data, error, count } = await q.range(from, to);
+    if (appliedYear) q = q.eq("incident_year", Number(appliedYear));
+    if (appliedMonth) q = q.eq("incident_month", appliedMonth);
 
-  
-      if (cancelled) return;
-  
-      if (error) {
-        console.error('Error fetching posts:', error);
-        setPosts([]);
-        setTotalCount(0);
-      } else {
-        setPosts(data || []);
-        setTotalCount(count || 0);
-      }
-  
-      setLoading(false);
-    };
-  
-    fetchPosts();
-  
-    return () => {
-      cancelled = true;
-    };
+    const { data, error, count } = await q.range(from, to);
+
+    if (!isMountedRef.current) return;
+
+    if (error) {
+      console.error("Error fetching posts:", error);
+      setPosts([]);
+      setTotalCount(0);
+    } else {
+      setPosts(data || []);
+      setTotalCount(count || 0);
+    }
+ 
+    setLoading(false);
   }, [
     page,
-    isLoggedIn,
+    PAGE_SIZE,
     appliedIndustry,
     appliedCategory,
     appliedYear,
     appliedMonth,
     appliedListing,
   ]);
+  
+  //初回＆条件変更で実行する useEffect
+  useEffect(() => {
+  fetchPosts();
+  }, [fetchPosts]);
+  
+  //タブ復帰 / フォーカス復帰で再取得する useEffect
+  useEffect(() => {
+  const onFocus = () => fetchPosts();
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") fetchPosts();
+  };
+
+  window.addEventListener("focus", onFocus);
+  document.addEventListener("visibilitychange", onVisibility);
+
+  return () => {
+    window.removeEventListener("focus", onFocus);
+    document.removeEventListener("visibilitychange", onVisibility);
+  };
+  }, [fetchPosts]);
 
   // カテゴリ検索実行
   const handleCategorySearch = () => {
