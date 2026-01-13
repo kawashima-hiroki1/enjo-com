@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "炎上.com - 失敗から学ぶリスクマネジメント",
+    default: "炎上.com - 事例から学ぶ、最強のリスクマネジメント",
     template: "%s | 炎上.com"
   },
   description: "企業の炎上・拡散事例をデータベース化。業界別・カテゴリ別の詳細なリスク分析で、自社のリスクを事前に予習・対策できます。",
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ja_JP",
     url: "https://enjo.ne.jp",
-    title: "炎上.com - 失敗から学ぶリスクマネジメント",
+    title: "炎上.com - 事例から学ぶ、最強のリスクマネジメント",
     description: "企業の炎上・拡散事例をデータベース化。業界別・カテゴリ別の詳細なリスク分析で、自社のリスクを事前に予習・対策できます。",
     siteName: "炎上.com",
   },
   twitter: {
     card: "summary_large_image",
-    title: "炎上.com - 失敗から学ぶリスクマネジメント",
+    title: "炎上.com - 事例から学ぶ、最強のリスクマネジメント",
     description: "企業の炎上・拡散事例をデータベース化。業界別・カテゴリ別の詳細なリスク分析で、自社のリスクを事前に予習・対策できます。",
   },
   alternates: {
