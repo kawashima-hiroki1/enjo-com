@@ -53,44 +53,43 @@ const Dashboard = ({
 
   // プロフィール設定画面
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!isLoggedIn) {
-        setUserProfile(null);
-        setActiveTab('dashboard');
-        return;
-      }
-  
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        setUserProfile(null);
-        return;
-      }
+  const loadProfile = async () => {
+    if (!isLoggedIn) {
+      setUserProfile(null);
+      setActiveTab("dashboard");
+      return;
+    }
 
-      const emailVerified = !!(user.email_confirmed_at ?? (user as any).confirmed_at);
-  
-      const { data, error: updateErr } = await supabase
-       .from("posts")
-       .update(payload)
-       .eq("id", postId)
-       .select("id");
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      setUserProfile(null);
+      return;
+    }
 
-      if (updateErr) throw updateErr;
+    const emailVerified = !!(user.email_confirmed_at ?? (user as any).confirmed_at);
 
-      if (!data || data.length === 0) {
-       throw new Error("更新対象が見つからない、または権限がありません（RLSの可能性）");
-      }
-  
-      setUserProfile({
-        email: user.email,
-        emailVerified,
-        company: profile?.company ?? user.user_metadata?.company ?? '',
-        department: profile?.department ?? user.user_metadata?.department ?? '',
-        name: profile?.name ?? user.user_metadata?.name ?? '',
-      });
-    };
-  
-    loadProfile();
-  }, [isLoggedIn]);  
+    const { data: profile, error: profErr } = await supabase
+      .from("profiles")
+      .select("company, department, name")
+      .eq("id", user.id)
+      .single();
+
+    if (profErr) {
+      // なくても動くようにする（初回未作成など）
+      console.warn("profile load error:", profErr.message);
+    }
+
+    setUserProfile({
+      email: user.email ?? "",
+      emailVerified,
+      company: profile?.company ?? (user.user_metadata as any)?.company ?? "",
+      department: profile?.department ?? (user.user_metadata as any)?.department ?? "",
+      name: profile?.name ?? (user.user_metadata as any)?.name ?? "",
+    });
+  };
+
+  loadProfile();
+}, [isLoggedIn]);
 
   // データ管理用State
   const [posts, setPosts] = useState<any[]>([]);
