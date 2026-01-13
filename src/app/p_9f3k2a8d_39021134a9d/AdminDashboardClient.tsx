@@ -385,42 +385,72 @@ export default function AdminDashboard() {
     setViewMode('edit');
   };
 
-  const handleSavePost = async () => {
-    if (!formData.title) { alert('タイトルは必須です'); return; }
+　const handleSavePost = async () => {
+  　if (!formData.title) { alert('タイトルは必須です'); return; }
 
-    const saveData = {
-      title: formData.title,
-      company: formData.company || '',
-      industry: formData.industry,
-      listing_status: formData.listing_status,
-      date: `${formData.dateYear}年${formData.dateMonth}月`,
-      category_type: formData.category_type,
-      tags: typeof formData.tags === 'string' ? formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : formData.tags,
-      score: parseFloat(formData.score),
-      status: formData.status,
-      summary: formData.summary || '',
-      impact: typeof formData.impact === 'string' ? formData.impact.split('\n').filter((t: string) => t) : formData.impact,
-      bad_move: formData.bad_move || '',
-      lesson: formData.lesson || '',
-      related_links: formData.related_links || [],
-      timeline: formData.timeline || [],
-      related_post_ids: formData.related_post_ids || [],
-      updated_at: new Date().toISOString(),
-    };
+  　const saveData = {
+    　title: formData.title,
+    　company: formData.company || '',
+    　industry: formData.industry,
+    　listing_status: formData.listing_status,
+    　date: `${formData.dateYear}年${formData.dateMonth}月`,
+    　category_type: formData.category_type,
+    　tags: typeof formData.tags === 'string'
+      　? formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+      　: formData.tags,
+    　score: Number(formData.score),
+    status: formData.status,
+    summary: formData.summary || '',
+    impact: typeof formData.impact === 'string'
+      ? formData.impact.split('\n').map((t: string) => t.trim()).filter(Boolean)
+      : formData.impact,
+    bad_move: formData.bad_move || '',
+    lesson: formData.lesson || '',
+    related_links: formData.related_links || [],
+    timeline: formData.timeline || [],
+    related_post_ids: formData.related_post_ids || [],
+    updated_at: new Date().toISOString(),
+  　};
 
-    try {
-      if (editingPost?.id) {
-        await supabase.from('posts').update(saveData).eq('id', editingPost.id);
-      } else {
-        await supabase.from('posts').insert([saveData]);
-      }
-      alert('保存しました');
-      fetchPosts();
-      setViewMode('list');
-    } catch (error) {
-      alert('保存に失敗しました');
-    }
-  };
+  　try {
+    　let saved: any;
+
+    　if (editingPost?.id) {
+      　const { data, error } = await supabase
+        　.from('posts')
+        　.update(saveData)
+        　.eq('id', editingPost.id)
+        　.select('*')
+        　.single();
+
+    　  if (error) throw error;
+      　saved = data;
+    　} else {
+      　const { data, error } = await supabase
+        　.from('posts')
+       　 .insert([saveData])
+       　 .select('*')
+       　 .single();
+
+　      if (error) throw error;
+  　    saved = data;
+    　}
+
+   　 alert('保存しました');
+
+    　setPosts((prev) => {
+      　const exists = prev.some(p => p.id === saved.id);
+      　return exists ? prev.map(p => (p.id === saved.id ? saved : p)) : [saved, ...prev];
+    　});
+
+    　await fetchPosts(postsPage, filterYear, filterMonth);
+
+　    setViewMode('list');
+  　} catch (e: any) {
+    　console.error(e);
+    　alert(`保存に失敗しました: ${e?.message ?? 'unknown error'}`);
+  　}
+　};
 
   const handleDeletePost = async (id: number) => {
     if (!confirm('本当に削除しますか？')) return;
