@@ -397,6 +397,9 @@ export default function AdminDashboard() {
     industry: formData.industry,
     listing_status: formData.listing_status,
     date: `${formData.dateYear}年${formData.dateMonth}月`,
+    // incident_year と incident_month も保存
+    incident_year: Number(formData.dateYear),
+    incident_month: formData.dateMonth,
     category_type: formData.category_type,
     tags:
       typeof formData.tags === "string"
@@ -422,6 +425,7 @@ export default function AdminDashboard() {
 
   try {
     if (editingPost?.id) {
+      // 更新処理
       const { data, error } = await supabase
         .from("posts")
         .update(saveData)
@@ -431,10 +435,18 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      // 画面上も即反映（fetch待ちしない）
+      // 即座にローカルstateを更新
       setPosts((prev) => prev.map((p) => (p.id === data.id ? data : p)));
       setEditingPost(data);
+      
+      alert("保存しました");
+      setViewMode("list");
+
+      // 現在のフィルタ条件で再取得（ページ位置維持）
+      await fetchPosts(postsPage, filterYear, filterMonth);
+      
     } else {
+      // 新規作成処理
       const { data, error } = await supabase
         .from("posts")
         .insert(saveData)
@@ -443,16 +455,13 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      setPosts((prev) => [data, ...prev]);
-      setPostsTotalCount((c) => c + 1);
-      setEditingPost(data);
+      alert("保存しました");
+      setViewMode("list");
+
+      // 現在のフィルタ条件で再取得（ページ位置維持）
+      await fetchPosts(postsPage, filterYear, filterMonth);
     }
 
-    alert("保存しました");
-    setViewMode("list");
-
-    // 念のため最新を取り直すなら await する
-    await fetchPosts(postsPage, filterYear, filterMonth);
   } catch (e: any) {
     console.error(e);
     alert(`保存に失敗しました: ${e?.message ?? "不明なエラー"}`);
