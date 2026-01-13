@@ -68,13 +68,13 @@ const Dashboard = ({
 
       const emailVerified = !!(user.email_confirmed_at ?? (user as any).confirmed_at);
   
-      const { data, error } = await supabase
+      const { data, error: updateErr } = await supabase
        .from("posts")
        .update(payload)
        .eq("id", postId)
        .select("id");
 
-      if (error) throw error;
+      if (updateErr) throw updateErr;
 
       if (!data || data.length === 0) {
        throw new Error("更新対象が見つからない、または権限がありません（RLSの可能性）");
