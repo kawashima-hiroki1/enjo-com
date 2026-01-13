@@ -385,7 +385,7 @@ export default function AdminDashboard() {
     setViewMode('edit');
   };
 
-　const handleSavePost = async () => {
+const handleSavePost = async () => {
   if (!formData?.title?.trim()) {
     alert("タイトルは必須です");
     return;
@@ -421,58 +421,103 @@ export default function AdminDashboard() {
   };
 
   try {
+    console.log("=== 保存開始 ===");
+    console.log("editingPost:", editingPost);
+    console.log("saveData:", saveData);
+    
     if (editingPost?.id) {
-      // 更新処理
+      // ✅ 更新処理
+      console.log("更新モード: ID =", editingPost.id);
+      
       const { data, error } = await supabase
         .from("posts")
         .update(saveData)
         .eq("id", editingPost.id)
         .select("*");
 
-      if (error) throw error;
-      
-      // データが返ってきたか確認
-      if (!data || data.length === 0) {
-        throw new Error("更新後のデータ取得に失敗しました");
+      console.log("=== Update response ===");
+      console.log("data:", data);
+      console.log("error:", error);
+      console.log("data length:", data?.length);
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
       }
-
-      const updatedPost = data[0];
-
-      // 即座にローカルstateを更新
-      setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
-      setEditingPost(updatedPost);
+      
+      // ✅ データが返ってきたか確認
+      if (!data || data.length === 0) {
+        console.warn("⚠️ updateでデータが返ってこなかった。再取得を試みます...");
+        
+        // データなしでも更新自体は成功している可能性があるので、再取得を試みる
+        const { data: refetchData, error: refetchError } = await supabase
+          .from("posts")
+          .select("*")
+          .eq("id", editingPost.id)
+          .single();
+        
+        console.log("=== Refetch response ===");
+        console.log("refetchData:", refetchData);
+        console.log("refetchError:", refetchError);
+        
+        if (refetchError || !refetchData) {
+          throw new Error("更新は成功しましたが、データの再取得に失敗しました");
+        }
+        
+        const updatedPost = refetchData;
+        setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+        setEditingPost(updatedPost);
+        console.log("✅ 再取得成功");
+      } else {
+        const updatedPost = data[0];
+        console.log("✅ 更新成功:", updatedPost);
+        setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+        setEditingPost(updatedPost);
+      }
       
       alert("保存しました");
       setViewMode("list");
 
-      // 現在のフィルタ条件で再取得（ページ位置維持）
+      // ✅ 現在のフィルタ条件で再取得（ページ位置維持）
       await fetchPosts(postsPage, filterYear, filterMonth);
       
     } else {
-      // 新規作成処理
+      // ✅ 新規作成処理
+      console.log("新規作成モード");
+      
       const { data, error } = await supabase
         .from("posts")
         .insert(saveData)
         .select("*");
 
-      if (error) throw error;
+      console.log("=== Insert response ===");
+      console.log("data:", data);
+      console.log("error:", error);
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
       
-      // データが返ってきたか確認
       if (!data || data.length === 0) {
         throw new Error("作成後のデータ取得に失敗しました");
       }
 
       const newPost = data[0];
+      console.log("✅ 作成成功:", newPost);
 
       alert("保存しました");
       setViewMode("list");
 
-      // 現在のフィルタ条件で再取得（ページ位置維持）
+      // ✅ 現在のフィルタ条件で再取得（ページ位置維持）
       await fetchPosts(postsPage, filterYear, filterMonth);
     }
 
   } catch (e: any) {
-    console.error(e);
+    console.error("=== Save error ===");
+    console.error("Error object:", e);
+    console.error("Error message:", e?.message);
+    console.error("Error stack:", e?.stack);
     alert(`保存に失敗しました: ${e?.message ?? "不明なエラー"}`);
   }
 };
