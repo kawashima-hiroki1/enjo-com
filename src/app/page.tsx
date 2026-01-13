@@ -850,7 +850,7 @@ const Dashboard = ({
                           <div className="relative z-10 w-6 h-6 flex-shrink-0 bg-white border-2 border-red-500 rounded-full flex items-center justify-center"><div className="w-2 h-2 bg-red-500 rounded-full"></div></div>
                           <div className="flex-1 -mt-1">
                             <div className="flex items-baseline gap-2 mb-1"><span className="font-bold text-sm text-red-600">{step.day}</span><h4 className="font-bold text-gray-800 text-sm">{step.title}</h4></div>
-                            <p className="text-sm text-gray-600 leading-snug">{step.desc}</p>
+                            <p className="text-sm text-gray-600 leading-snug whitespace-pre-wrap">{step.desc}</p>
                           </div>
                         </div>
                       ))}</div>
