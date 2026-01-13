@@ -72,7 +72,13 @@ const Dashboard = ({
         .from('profiles')
         .select('company, department, name')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+      
+        if (error) throw error;
+
+        if (!data) {
+         throw new Error("更新対象が見つからない、または権限がありません（RLSの可能性）");
+        }
   
       setUserProfile({
         email: user.email,
