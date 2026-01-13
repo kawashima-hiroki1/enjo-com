@@ -68,17 +68,17 @@ const Dashboard = ({
 
       const emailVerified = !!(user.email_confirmed_at ?? (user as any).confirmed_at);
   
-      const { data: profile, error: profErr } = await supabase
-        .from('profiles')
-        .select('company, department, name')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-        if (error) throw error;
+      const { data, error } = await supabase
+       .from("posts")
+       .update(payload)
+       .eq("id", postId)
+       .select("id");
 
-        if (!data) {
-         throw new Error("更新対象が見つからない、または権限がありません（RLSの可能性）");
-        }
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+       throw new Error("更新対象が見つからない、または権限がありません（RLSの可能性）");
+      }
   
       setUserProfile({
         email: user.email,
