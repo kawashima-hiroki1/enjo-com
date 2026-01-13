@@ -386,77 +386,78 @@ export default function AdminDashboard() {
   };
 
 　const handleSavePost = async () => {
-  　if (!formData.title) { alert('タイトルは必須です'); return; }
+  if (!formData?.title?.trim()) {
+    alert("タイトルは必須です");
+    return;
+  }
 
-  　const saveData = {
-    　title: formData.title,
-    　company: formData.company || '',
-    　industry: formData.industry,
-    　listing_status: formData.listing_status,
-    　date: `${formData.dateYear}年${formData.dateMonth}月`,
-    　category_type: formData.category_type,
-    　tags: typeof formData.tags === 'string'
-      　? formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
-      　: formData.tags,
-    　score: Number(formData.score),
+  const saveData = {
+    title: formData.title.trim(),
+    company: (formData.company || "").trim(),
+    industry: formData.industry,
+    listing_status: formData.listing_status,
+    date: `${formData.dateYear}年${formData.dateMonth}月`,
+    category_type: formData.category_type,
+    tags:
+      typeof formData.tags === "string"
+        ? formData.tags
+            .split(",")
+            .map((t: string) => t.trim())
+            .filter(Boolean)
+        : formData.tags,
+    score: Number.parseFloat(String(formData.score)),
     status: formData.status,
-    summary: formData.summary || '',
-    impact: typeof formData.impact === 'string'
-      ? formData.impact.split('\n').map((t: string) => t.trim()).filter(Boolean)
-      : formData.impact,
-    bad_move: formData.bad_move || '',
-    lesson: formData.lesson || '',
+    summary: (formData.summary || "").trim(),
+    impact:
+      typeof formData.impact === "string"
+        ? formData.impact.split("\n").map((t: string) => t.trim()).filter(Boolean)
+        : formData.impact,
+    bad_move: (formData.bad_move || "").trim(),
+    lesson: (formData.lesson || "").trim(),
     related_links: formData.related_links || [],
     timeline: formData.timeline || [],
     related_post_ids: formData.related_post_ids || [],
     updated_at: new Date().toISOString(),
-  　};
-
-  　try {
-    　let saved: any;
-
-    　if (editingPost?.id) {
-      　const { data, error } = await supabase
-        　.from('posts')
-        　.update(saveData)
-        　.eq('id', editingPost.id)
-        　.select('*')
-        　.single();
-
-    　  if (error) throw error;
-      　saved = data;
-    　} else {
-      　const { data, error } = await supabase
-        　.from('posts')
-       　 .insert([saveData])
-       　 .select('*')
-       　 .single();
-
-　      if (error) throw error;
-  　    saved = data;
-    　}
-
-   　 alert('保存しました');
-
-    　setPosts((prev) => {
-      　const exists = prev.some(p => p.id === saved.id);
-      　return exists ? prev.map(p => (p.id === saved.id ? saved : p)) : [saved, ...prev];
-    　});
-
-    　await fetchPosts(postsPage, filterYear, filterMonth);
-
-　    setViewMode('list');
-  　} catch (e: any) {
-    　console.error(e);
-    　alert(`保存に失敗しました: ${e?.message ?? 'unknown error'}`);
-  　}
-　};
-
-  const handleDeletePost = async (id: number) => {
-    if (!confirm('本当に削除しますか？')) return;
-    await supabase.from('posts').delete().eq('id', id);
-    fetchPosts();
   };
+
+  try {
+    if (editingPost?.id) {
+      const { data, error } = await supabase
+        .from("posts")
+        .update(saveData)
+        .eq("id", editingPost.id)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      // 画面上も即反映（fetch待ちしない）
+      setPosts((prev) => prev.map((p) => (p.id === data.id ? data : p)));
+      setEditingPost(data);
+    } else {
+      const { data, error } = await supabase
+        .from("posts")
+        .insert(saveData)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      setPosts((prev) => [data, ...prev]);
+      setPostsTotalCount((c) => c + 1);
+      setEditingPost(data);
+    }
+
+    alert("保存しました");
+    setViewMode("list");
+
+    // 念のため最新を取り直すなら await する
+    await fetchPosts(postsPage, filterYear, filterMonth);
+  } catch (e: any) {
+    console.error(e);
+    alert(`保存に失敗しました: ${e?.message ?? "不明なエラー"}`);
+  }
+};
 
   // フォーム入力ハンドラ類
   const handleChange = (e: any) => {
