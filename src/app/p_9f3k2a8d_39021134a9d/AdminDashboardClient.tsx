@@ -468,6 +468,34 @@ export default function AdminDashboard() {
   }
 };
 
+  // 事例削除ハンドラ
+const handleDeletePost = async (postId: number) => {
+  if (!window.confirm('この事例を削除しますか？この操作は取り消せません。')) {
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', postId);
+
+    if (error) throw error;
+
+    // 即座にローカルstateから削除
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    setPostsTotalCount((c) => c - 1);
+
+    alert('削除しました');
+
+    // 最新データを取得
+    await fetchPosts(postsPage, filterYear, filterMonth);
+  } catch (e: any) {
+    console.error(e);
+    alert(`削除に失敗しました: ${e?.message ?? '不明なエラー'}`);
+  }
+};
+
   // フォーム入力ハンドラ類
   const handleChange = (e: any) => {
     const { name, value } = e.target;
