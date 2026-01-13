@@ -427,14 +427,20 @@ export default function AdminDashboard() {
         .from("posts")
         .update(saveData)
         .eq("id", editingPost.id)
-        .select("*")
-        .single();
+        .select("*");
 
       if (error) throw error;
+      
+      // データが返ってきたか確認
+      if (!data || data.length === 0) {
+        throw new Error("更新後のデータ取得に失敗しました");
+      }
+
+      const updatedPost = data[0];
 
       // 即座にローカルstateを更新
-      setPosts((prev) => prev.map((p) => (p.id === data.id ? data : p)));
-      setEditingPost(data);
+      setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+      setEditingPost(updatedPost);
       
       alert("保存しました");
       setViewMode("list");
@@ -447,10 +453,16 @@ export default function AdminDashboard() {
       const { data, error } = await supabase
         .from("posts")
         .insert(saveData)
-        .select("*")
-        .single();
+        .select("*");
 
       if (error) throw error;
+      
+      // データが返ってきたか確認
+      if (!data || data.length === 0) {
+        throw new Error("作成後のデータ取得に失敗しました");
+      }
+
+      const newPost = data[0];
 
       alert("保存しました");
       setViewMode("list");
