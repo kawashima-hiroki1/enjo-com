@@ -841,7 +841,7 @@ const Dashboard = ({
               </section>
               {item.timeline && item.timeline.length > 0 && (
                 <section>
-                  <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center"><Clock size={16} className="mr-2" /> タイムライン</h3>
+                  <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-3 flex items-center"><Clock size={16} className="mr-2" /> タイムライン(※目安)</h3>
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
                     <div className="relative">
                       <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-300"></div>
