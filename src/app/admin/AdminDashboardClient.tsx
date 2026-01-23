@@ -822,14 +822,14 @@ const PostListView = () => (
           解除
         </button>
 　　　　　
-        {/* 類似事例紐付け */}
+        {/* 同カテゴリ・同業種の事例紐付け */}
 　　　　　<button
           onClick={autoLinkAllPosts}
           disabled={loading}
           className="border border-blue-300 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2"
         >
           <Link size={16} />
-          類似事例を自動紐付け
+          事例紐付け
         </button>
         
         {/* 新規作成 */}
@@ -837,7 +837,7 @@ const PostListView = () => (
           onClick={handleCreateNew}
           className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-red-700 transition shadow-sm"
         >
-          <Plus size={20} /> 新規事例作成
+          <Plus size={20} /> 新規作成
         </button>
       </div>
     </div>
