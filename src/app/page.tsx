@@ -877,10 +877,10 @@ const Dashboard = ({
                 ) : <p className="text-xs text-gray-400">関連リンクはありません。</p>}
               </div>
 
-              {/* 類似事例セクション (動的リンク) */}
+              {/* 類似事例セクション */}
               <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
                 <h4 className="font-bold text-yellow-800 mb-2 text-sm flex items-center">
-                  <LinkIcon size={14} className="mr-2" /> 類似事例
+                  <LinkIcon size={14} className="mr-2" /> 同カテゴリ・同業種事例
                 </h4>
                 {relatedPosts.length > 0 ? (
                   <ul className="text-sm space-y-3 text-yellow-900">
