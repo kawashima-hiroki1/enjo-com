@@ -30,6 +30,7 @@ type Post = {
   id: number;
   title?: string;
   company?: string;
+  industry?: string;
   status?: PostStatus;
   score?: number;
   category_type?: CategoryKey;
