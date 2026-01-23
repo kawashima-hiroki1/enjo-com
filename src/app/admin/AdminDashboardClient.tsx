@@ -345,7 +345,58 @@ export default function AdminDashboard() {
       uniqueCompanies,
     });
   };
+
+　const getSuggestedRelatedPosts = (currentPost: any, allPosts: Post[]) => {
+  　return allPosts
+    　.filter(p => p.id !== currentPost.id && p.status === 'published')
+    　.map(post => {
+      　let score = 0;
+      
+      　// カテゴリの一致
+      　if (post.category_type === currentPost.category_type) score += 2;
+      
+      　// 業界の一致
+      　if (post.industry === currentPost.industry) score += 1;
+      
+      　return { post, score };
+    　})
+    　.filter(item => item.score > 0) // スコアが1以上のもの
+    　.sort((a, b) => b.score - a.score)
+    　.slice(0, 5) // 上位5件
+    　.map(item => item.post);
+　};
+
+  const autoLinkAllPosts = async () => {
+  if (!window.confirm('全事例の類似紐付けを自動実行しますか？\n（カテゴリ・業界が同じ事例を最大5件紐付けます）')) return;
   
+  setLoading(true);
+  
+  try {
+    let updatedCount = 0;
+    
+    for (const post of posts) {
+      const suggested = getSuggestedRelatedPosts(post, posts);
+      const relatedIds = suggested.map(p => p.id);
+      
+      if (relatedIds.length > 0) {
+        await supabase
+          .from('posts')
+          .update({ related_post_ids: relatedIds })
+          .eq('id', post.id);
+        
+        updatedCount++;
+      }
+    }
+    
+    alert(`自動紐付けが完了しました（${updatedCount}件更新）`);
+    await fetchPosts();
+  } catch (e) {
+    console.error(e);
+    alert('エラーが発生しました');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // --- 事例管理ロジック ---
   const years: number[] = Array.from({ length: 10 }, (_, i) => 2019 + i);
@@ -769,7 +820,17 @@ const PostListView = () => (
         >
           解除
         </button>
-
+　　　　　
+        {/* 類似事例紐付け */}
+　　　　　<button
+          onClick={autoLinkAllPosts}
+          disabled={loading}
+          className="border border-blue-300 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 disabled:opacity-50 flex items-center gap-2"
+        >
+          <Link size={16} />
+          類似事例を自動紐付け
+        </button>
+        
         {/* 新規作成 */}
         <button
           onClick={handleCreateNew}
