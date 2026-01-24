@@ -1276,7 +1276,7 @@ const Dashboard = ({
       {isLoggedIn && totalCount > 0 && (
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="text-sm text-gray-500">
-            {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示（{page} / {totalPages}ページ）
+            {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示
           </div>
 
           <div className="flex items-center gap-2">
@@ -1364,7 +1364,7 @@ const Dashboard = ({
             <div>
               <h4 className="font-bold mb-4 text-gray-300 text-sm">サービス</h4>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">事例検索</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">事例を探す</button></li>
                 {!isLoggedIn && (
                   <>
                     <li><button onClick={() => onShowAuth('register', 'footer')} className="hover:text-white transition">会員登録</button></li>
