@@ -75,7 +75,6 @@ const Dashboard = ({
       .single();
 
     if (profErr) {
-      // なくても動くようにする（初回未作成など）
       console.warn("profile load error:", profErr.message);
     }
 
@@ -1273,11 +1272,11 @@ const Dashboard = ({
         </div>
       )}
 
-      {/* ページネーション（今のまま貼り替え） */}
+      {/* ページネーション */}
       {isLoggedIn && totalCount > 0 && (
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="text-sm text-gray-500">
-            {totalCount}件中 {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示（{page} / {totalPages}ページ）
+            {(page - 1) * PAGE_SIZE + 1}〜{Math.min(page * PAGE_SIZE, totalCount)}件を表示（{page} / {totalPages}ページ）
           </div>
 
           <div className="flex items-center gap-2">
