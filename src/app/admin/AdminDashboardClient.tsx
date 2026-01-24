@@ -230,18 +230,26 @@ export default function AdminDashboard() {
   const fetchAllData = async (role: Role) => {
   setLoading(true);
 
-  // まず posts は必ず取る
-  const tasks: Promise<any>[] = [fetchPosts(), fetchDashboardStats()];
+   const { data: allPosts, error: allPostsError } = await supabase
+     .from('posts')
+     .select('*');
 
-  // 管理者だけ users/admins を取る
-  if (role === 'ADMIN') {
-    tasks.push(fetchUsers());
-    tasks.push(fetchAdmins());
-  }
+   if (!allPostsError && allPosts) {
+     setPosts(allPosts); // 全件をセット
+   }
 
-  await Promise.all(tasks);
-  setLoading(false);
-};
+   // まず posts は必ず取る
+   const tasks: Promise<any>[] = [fetchPosts(), fetchDashboardStats()];
+
+   // 管理者だけ users/admins を取る
+   if (role === 'ADMIN') {
+     tasks.push(fetchUsers());
+     tasks.push(fetchAdmins());
+   }
+
+   await Promise.all(tasks);
+   setLoading(false);
+ };
 
   // フィルター条件
   useEffect(() => {
