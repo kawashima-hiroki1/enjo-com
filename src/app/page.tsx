@@ -322,8 +322,8 @@ const Dashboard = ({
     setPage(1);
   };
 
-  // 未ログイン時の表示件数制限（5件まで）
-  const displayLimit = 5;
+  // 未ログイン時の表示件数制限（10件まで）
+  const displayLimit = 10;
   const displayData = isLoggedIn ? posts : posts.slice(0, displayLimit);
   const hiddenCount = Math.max(0, totalCount - displayLimit);
 
