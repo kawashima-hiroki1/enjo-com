@@ -66,9 +66,16 @@ export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<any[]>([]); // 顧客データ
   const [admins, setAdmins] = useState<any[]>([]); // 管理者データ
-  const [dashboardStats, setDashboardStats] = useState<{ totalUsers: number; uniqueCompanies: number }>({
+  const [dashboardStats, setDashboardStats] = useState<{
+    totalUsers: number; 
+    uniqueCompanies: number;
+    publishedCount: number;
+    totalPosts: number;   
+  }>({
     totalUsers: 0,
     uniqueCompanies: 0,
+    publishedCount: 0,
+    totalPosts: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -230,14 +237,6 @@ export default function AdminDashboard() {
   const fetchAllData = async (role: Role) => {
   setLoading(true);
 
-   const { data: allPosts, error: allPostsError } = await supabase
-     .from('posts')
-     .select('*');
-
-   if (!allPostsError && allPosts) {
-     setPosts(allPosts); // 全件をセット
-   }
-
    // まず posts は必ず取る
    const tasks: Promise<any>[] = [fetchPosts(), fetchDashboardStats()];
 
@@ -330,30 +329,48 @@ export default function AdminDashboard() {
     setAdmins(data || []);
   };
   const fetchDashboardStats = async () => {
-    // 累計ユーザー数（件数だけ）
-    const { count: totalUsers, error: totalErr } = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true });
-  
-    // 導入企業数（ユニーク） ※簡易版：company列だけ取得して Set でユニーク化
-    const { data: companies, error: compErr } = await supabase
-      .from('profiles')
-      .select('company');
-  
-    const uniqueCompanies = new Set(
-      (companies || []).map((r: any) => r.company).filter((v: any) => !!v)
-    ).size;
-  
-    if (totalErr || compErr) {
-      setDashboardStats({ totalUsers: 0, uniqueCompanies: 0 });
-      return;
-    }
-  
-    setDashboardStats({
-      totalUsers: totalUsers ?? 0,
-      uniqueCompanies,
+  // 公開中の事例数
+  const { count: publishedCount, error: pubErr } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'published');
+
+  // 全事例数
+  const { count: totalPosts, error: totalErr } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true });
+
+  // 累計ユーザー数
+  const { count: totalUsers, error: totalUsersErr } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true });
+
+  // 導入企業数（ユニーク）
+  const { data: companies, error: compErr } = await supabase
+    .from('profiles')
+    .select('company');
+
+  const uniqueCompanies = new Set(
+    (companies || []).map((r: any) => r.company).filter((v: any) => !!v)
+  ).size;
+
+  if (pubErr || totalErr || totalUsersErr || compErr) {
+    setDashboardStats({ 
+      totalUsers: 0, 
+      uniqueCompanies: 0,
+      publishedCount: 0,
+      totalPosts: 0 
     });
-  };
+    return;
+  }
+
+  setDashboardStats({
+    totalUsers: totalUsers ?? 0,
+    uniqueCompanies,
+    publishedCount: publishedCount ?? 0,
+    totalPosts: totalPosts ?? 0
+  });
+};
 
 　const getSuggestedRelatedPosts = (currentPost: any, allPosts: Post[]) => {
   　return allPosts
@@ -671,33 +688,33 @@ const handleDeletePost = async (postId: number) => {
   // --- ビュー ---
 
   const DashboardHomeView = () => {
-    const publishedCount = posts.filter(p => p.status === 'published').length;
-    const totalUsers = isAdmin ? users.length : dashboardStats.totalUsers;
-    const uniqueCompanies = isAdmin
-      ? new Set(users.map(u => u.company).filter(Boolean)).size
-      : dashboardStats.uniqueCompanies;
-
-    return (
-      <div className="space-y-6 animate-in fade-in duration-300">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">ダッシュボード</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 font-bold uppercase">公開中の事例数</p>
-            <h3 className="text-3xl font-bold text-gray-800 mt-2">{publishedCount} <span className="text-sm font-normal text-gray-400">件</span></h3>
-            <div className="text-xs text-gray-500 mt-2">全記事数: {posts.length} 件</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 font-bold uppercase">導入企業数 (ユニーク)</p>
-            <h3 className="text-3xl font-bold text-gray-800 mt-2">{uniqueCompanies} <span className="text-sm font-normal text-gray-400">社</span></h3>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 font-bold uppercase">累計ユーザー数</p>
-            <h3 className="text-3xl font-bold text-gray-800 mt-2">{totalUsers} <span className="text-sm font-normal text-gray-400">名</span></h3>
-          </div>
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">ダッシュボード</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-xs text-gray-500 font-bold uppercase">公開中の事例数</p>
+          <h3 className="text-3xl font-bold text-gray-800 mt-2">
+            {dashboardStats.publishedCount} <span className="text-sm font-normal text-gray-400">件</span>
+          </h3>
+          <div className="text-xs text-gray-500 mt-2">全記事数: {dashboardStats.totalPosts} 件</div>
+        </div>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-xs text-gray-500 font-bold uppercase">導入企業数 (ユニーク)</p>
+          <h3 className="text-3xl font-bold text-gray-800 mt-2">
+            {dashboardStats.uniqueCompanies} <span className="text-sm font-normal text-gray-400">社</span>
+          </h3>
+        </div>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-xs text-gray-500 font-bold uppercase">累計ユーザー数</p>
+          <h3 className="text-3xl font-bold text-gray-800 mt-2">
+            {dashboardStats.totalUsers} <span className="text-sm font-normal text-gray-400">名</span>
+          </h3>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const UserManagementView = () => (
     <div className="animate-in fade-in duration-300">
