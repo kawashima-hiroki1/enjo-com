@@ -1168,14 +1168,14 @@ const Dashboard = ({
         <div className="text-center py-20 text-gray-500">データを読み込み中...</div>
  　　　 　　) : displayData.length === 0 ? (
 　　　　　　  <div className="text-center py-20">
-   　　　　　 <div className="bg-gray-50 rounded-xl p-12 border border-gray-200 text-center">
+   　　　　　 <div className="bg-gray-50 rounded-xl p-12 border border-gray-200">
    　　　　   <div className="text-gray-400 mb-4">
     　　 　   <Filter size={48} className="mx-auto" />
   　  　  　　</div>
-  　    　　　<h3 className="text-xl font-bold text-gray-700 mb-2">
+  　    　　　<h3 className="text-xl font-bold text-gray-700 mb-2 text-center">
   　      　　　該当する事例が見つかりません
  　     　　　</h3>
-  　    　　　<p className="text-gray-500 text-sm">
+  　    　　　<p className="text-gray-500 text-sm text-center">
   　      　　検索条件を変更してお試しください
  　    　　　 </p>
 　　　　    </div>
