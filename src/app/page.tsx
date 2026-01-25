@@ -330,9 +330,9 @@ const Dashboard = ({
   // 詳細閲覧アクション
   const handleItemClick = (item: any) => {
     if (isLoggedIn) {
-      setSelectedIncident(item);
+      window.location.href = `/casestudy/${item.id}`;
     } else {
-      setShowGateModal(true); // 制限モーダルを表示
+      setShowGateModal(true);
     }
   };
 
