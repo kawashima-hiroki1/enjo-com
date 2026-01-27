@@ -180,7 +180,7 @@ export default function CaseStudyDetail() {
             {post.timeline && post.timeline.length > 0 && (
               <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center">
-                  <Clock size={16} className="mr-2" /> タイムライン
+                  <Clock size={16} className="mr-2" /> タイムライン(※目安)
                 </h2>
                 <div className="relative">
                   <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-300"></div>
