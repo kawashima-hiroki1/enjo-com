@@ -263,7 +263,7 @@ export default function CaseStudyDetail() {
             {relatedPosts.length > 0 && (
               <div className="bg-yellow-50 p-5 rounded-xl shadow-sm border border-yellow-200">
                 <h3 className="font-bold text-yellow-800 mb-3 text-sm flex items-center">
-                  <LinkIcon size={14} className="mr-2" /> 類似事例
+                  <LinkIcon size={14} className="mr-2" /> 同カテゴリ・同業種事例
                 </h3>
                 <ul className="text-sm space-y-3 text-yellow-900">
                   {relatedPosts.map((related: any) => (
