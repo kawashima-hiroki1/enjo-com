@@ -27,7 +27,7 @@ const LISTING_STATUSES = ["未上場", "東証プライム", "東証スタンダ
 
 // 影響度スコアの定義
 const SCORE_DEFINITIONS: Record<number, { label: string; desc: string }> = {
-  1: { label: "限定的", desc: "一部界隈で批判・引用RTで拡散" },
+  1: { label: "限定的", desc: "一部界隈で批判・引用投稿で拡散" },
   2: { label: "軽微", desc: "SNS上で一定拡散（プチバズ）、検索上位に一時浮上" },
   3: { label: "中程度", desc: "複数プラットフォームに波及、まとめ・ニュース化、トレンドイン" },
   4: { label: "重大", desc: "ニュース・大手メディア・行政/業界団体が反応、TVCM取りやめ" },
