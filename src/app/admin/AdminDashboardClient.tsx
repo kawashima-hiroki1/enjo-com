@@ -425,7 +425,7 @@ export default function AdminDashboard() {
 };
 
   // --- 事例管理ロジック ---
-  const years: number[] = Array.from({ length: 10 }, (_, i) => 2019 + i);
+  const years: number[] = Array.from({ length: 14 }, (_, i) => 2016 + i);
   const months: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
 
   const initFormData = () => ({
