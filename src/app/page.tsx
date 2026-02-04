@@ -1010,7 +1010,7 @@ const Dashboard = ({
                   onChange={(e) => setFilterYear(e.target.value)}
                 >
                   <option value="">すべて</option>
-                  {["2026","2025","2024","2023","2022","2021","2020","2019"].map((year) => (
+                  {["2026","2025","2024","2023","2022","2021","2020","2019","2018","2017","2016"].map((year) => (
                     <option key={year} value={year}>{year}年</option>
                   ))}
                 </select>
