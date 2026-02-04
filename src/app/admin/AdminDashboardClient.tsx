@@ -43,7 +43,7 @@ type Post = {
 
 const INDUSTRIES: string[] = ["水産・農林業", "鉱業", "建設業", "製造業", "電気・ガス業", "運輸・情報通信業", "商業", "金融・保険業", "不動産業", "サービス業", "非営利"];
 const LISTING_STATUSES: string[] = ["未上場", "東証プライム", "東証スタンダード", "東証グロース", "海外上場", "その他"];
-const MEDIA_SOURCES: string[] = ["Yahoo!ニュース", "X (旧Twitter)", "SmartNews", "LINE NEWS", "TBS NEWS DIG", "東洋経済", "産経ニュース", "読売新聞オンライン", "毎日新聞", "東洋経済オンライン", "ダイヤモンド・オンライン", "ORICON NEWS", "日経ビジネス", "ITmedia", "ハフポスト", "PR TIMES", "Togetter", "YouTube", "テレビ報道", "その他"];
+const MEDIA_SOURCES: string[] = ["Yahoo!ニュース", "X (旧Twitter)", "SmartNews", "LINE NEWS", "TBS NEWS DIG", "東洋経済", "産経ニュース", "読売新聞オンライン", "毎日新聞", "東洋経済オンライン", "ダイヤモンド・オンライン", "ORICON NEWS", "日経ビジネス", "ITmedia", "ハフポスト", "PR TIMES", "Togetter", "YouTube", "テレビ報道", "公式情報", "その他"];
 
 const SCORE_DEFINITIONS: Record<number, { label: string; desc: string }> = {
   1: { label: "限定的", desc: "一部界隈で批判・引用RTで拡散" },
